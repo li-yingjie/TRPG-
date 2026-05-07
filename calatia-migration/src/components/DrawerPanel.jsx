@@ -204,7 +204,7 @@ function InventoryPanel({ gs }) {
           <div className="inv-grid">
             {items.map((it, i) => {
               const info = ITEM_INFO[it] || { icon:'📦', name:it };
-              const itemName = typeof it === 'string' ? it : info.name;
+              const itemName = info.name;
               return (
                 <div key={i} className="inv-cell has-item" title={itemName}>
                   <DdsIcon id={it} size={36} fallback={<span style={{fontSize:'1.4rem'}}>{info.icon}</span>} />

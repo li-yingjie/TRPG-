@@ -19,12 +19,25 @@ const ICON_MAP = {
   heal:           { sheet: 'skills', row: 1,  col: 7  },
 
   // ── Inventory items ──
-  healing_potion: { sheet: 'items',  row: 0,  col: 7  },
-  '基础魔法导引': { sheet: 'items',  row: 2,  col: 0  },
-  '老兵的短匕':   { sheet: 'items',  row: 11, col: 1  },
-  '古护身符':     { sheet: 'items',  row: 10, col: 0  },
-  '锻造护甲':     { sheet: 'items',  row: 5,  col: 0  },
-  silver_herb:    { sheet: 'items',  row: 7,  col: 14 },
+  healing_potion:   { sheet: 'items',  row: 0,  col: 7  },
+  '基础魔法导引':   { sheet: 'items',  row: 2,  col: 0  },
+  '老兵的短匕':     { sheet: 'items',  row: 11, col: 1  },
+  '古护身符':       { sheet: 'items',  row: 10, col: 0  },
+  '锻造护甲':       { sheet: 'items',  row: 5,  col: 0  },
+  silver_herb:      { sheet: 'items',  row: 7,  col: 14 },
+
+  // ── Starter equipment / survival kit ──
+  torch:            { sheet: 'items',  row: 3,  col: 0  },
+  rations:          { sheet: 'items',  row: 8,  col: 5  },
+  wooden_sword:     { sheet: 'items',  row: 4,  col: 0  },
+  leather_armor:    { sheet: 'items',  row: 5,  col: 6  },
+  apprentice_staff: { sheet: 'items',  row: 2,  col: 6  },
+  spellbook_basic:  { sheet: 'items',  row: 5,  col: 9  },
+  short_dagger:     { sheet: 'items',  row: 3,  col: 10 },
+  lockpicks:        { sheet: 'items',  row: 11, col: 0  },
+  holy_symbol:      { sheet: 'items',  row: 10, col: 10 },
+  morning_mace:     { sheet: 'items',  row: 4,  col: 7  },
+  rope:             { sheet: 'items',  row: 5,  col: 8  },
 };
 
 /**
