@@ -422,6 +422,7 @@ export const DIALOGS = {
         ],
       },
       {
+        flavor: true,
         when: () => true,
         paragraphs: [
           { type:'text', text:'你踏上崔鲍尔小道。这条路穿越农田和矮丘，是连接法达林镇与东部地区的主要通道。道路两侧，野草丛生，偶尔可以看到散落在路边的农家。' },
@@ -437,6 +438,20 @@ export const DIALOGS = {
           { text:'返回法达林镇', back:true },
         ],
       },
+      {
+        flavor: true,
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'午后的阳光斜斜地洒在崔鲍尔小道上，把碎石路染成蜜色。一辆农夫的板车从你身边晃晃悠悠地驶过，车上堆满了刚收割的麦子。' },
+          { type:'text', text:'路边的木栅栏被某种利爪划出几道深深的痕迹——不像狼，也不像熊。你蹲下细看时，余光瞥见远处的灌木在没有风的午后微微颤动。' },
+        ],
+        choices: [
+          { text:'查探灌木（侦查）', when: gs => gs.stats.WIS >= 11, result:{ items:['herb'], gold:5 }, msg:'你发现一只受伤的野兔被陷阱缠住，旁边还有半块掉落的银币。你解救了野兔，捡走了银币与几株药草。', stayHere:true },
+          { text:'继续采集月光草', result:{ items:['herb'] }, msg:'你专心采药，没有理会那些痕迹。', stayHere:true },
+          { text:'追查爪痕的来源', result:{ combat:'goblin' }, msg:'你顺着爪痕走进灌木深处，迎面撞上一只蹲伏的哥布林斥候！', stayHere:true },
+          { text:'返回法达林镇', back:true },
+        ],
+      },
     ],
   },
 
@@ -445,6 +460,7 @@ export const DIALOGS = {
     icon: '🌲', title: '永冬林',
     variants: [
       {
+        flavor: true,
         when: () => true,
         paragraphs: [
           { type:'text', text:'永冬林的树冠茂密得几乎遮蔽了天空，古老的树根盘踞在苔藓覆盖的地面上，将道路变成了迷宫。林中静谧得出奇，只有风穿树梢发出低沉的呜鸣，像是古老的低语。' },
@@ -457,6 +473,36 @@ export const DIALOGS = {
             { type:'text', text:'"法术熔炉，由三个古老世家联合建造，以精魔法的力量铸造任何金属与魔法物件……"文字因风化而残缺，但信息已经足够。' },
           ], result:{ flags:['forge_found'] }, stayHere:true },
           { text:'采集树液和草药', result:{ items:['herb'] }, msg:'你在林中找到一株罕见的银叶草，采摘下来包好。这在法达林镇能卖个好价钱，或者自用疗伤。', stayHere:true },
+          { text:'离开森林', back:true },
+        ],
+      },
+      {
+        flavor: true,
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'清晨的薄雾还未散去，永冬林像一张被打湿的水墨画。露珠从蕨叶上滑落，发出细碎的声响。一只灰背松鸦从你头顶掠过，叼着一段断裂的红色丝带——那并非自然之物。' },
+          { type:'text', text:'你顺着丝带飘落的方向望去，林子深处似乎有什么东西在动。是兽？是人？还是更糟糕的东西？' },
+        ],
+        choices: [
+          { text:'追踪丝带的来源（DEX检定）', when: gs => gs.stats.DEX >= 12, result:{ items:['herb'], gold:8 }, msg:'你悄无声息地穿过林间，找到一处被废弃的盗匪营地——篝火已凉，桌上散落着一些值钱的小物。', stayHere:true },
+          { text:'强行突进', result:{ combat:'goblin' }, msg:'你踏断了一根枯枝，藏在树后的两个哥布林立刻嚎叫着冲出！', stayHere:true },
+          { text:'采集草药', result:{ items:['herb'] }, msg:'你避开诡异的方向，转去采集草药。', stayHere:true },
+          { text:'离开森林', back:true },
+        ],
+      },
+      {
+        flavor: true,
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'林间的光线昏暗得像黄昏，即便正午也是如此。一棵参天古橡的树皮上钉着一块腐朽的木牌——曾经的猎人或冒险者留下的标记，字迹早已模糊。' },
+          { type:'text', text:'树根之间有一条勉强能算路径的兽道。空气里漂着一丝甜腻的、不属于这片森林的气味。' },
+        ],
+        choices: [
+          { text:'追溯气味来源（WIS检定）', when: gs => gs.stats.WIS >= 12, paragraphs:[
+            { type:'text', text:'你循着甜腻气味找到一片野蜂巢——蜂群已被某种生物驱散，留下的蜂蜜还可食用。你小心地装进皮囊。' },
+          ], result:{ items:['herb'], hp:6 }, stayHere:true },
+          { text:'沿兽道前行', result:{ combat:'giant_spider' }, msg:'兽道尽头是一张几乎透明的蛛网，等你看清时，巨蛛已从树冠上垂下！', stayHere:true },
+          { text:'就地采药', result:{ items:['herb'] }, msg:'你在朽木根部采到一捧青苔药材。', stayHere:true },
           { text:'离开森林', back:true },
         ],
       },

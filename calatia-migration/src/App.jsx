@@ -113,11 +113,33 @@ export default function App() {
 
   const currentMap = gs ? MAPS[gs.currentMap] : null;
 
-  // Pick variant from a dialog
+  // Pick variant from a dialog.
+  // - Default semantics (back-compat): the FIRST matching variant wins (in array order).
+  //   Use this for state-specific scenes (flag-gated, quest-gated) so they reliably override.
+  // - Flavor pool: any variant tagged `flavor: true` joins a random pool. If the first
+  //   matching variant is `flavor`, the engine collects ALL contiguous matching flavor
+  //   variants and randomly picks one — so repeated visits feel varied.
+  // - Within the chosen variant, if `paragraphsPool: [[...], [...]]` is provided, one pool
+  //   is picked at random as the actual paragraphs.
   const pickVariant = (dialogId, gsRef = gs) => {
     const d = DIALOGS[dialogId];
     if (!d) return null;
-    const v = d.variants.find(v => v.when(gsRef));
+    const firstIdx = d.variants.findIndex(v => v.when(gsRef));
+    if (firstIdx === -1) return { dialog:d, variant:null };
+    const first = d.variants[firstIdx];
+    let v;
+    if (first.flavor) {
+      const flavorMatches = d.variants
+        .slice(firstIdx)
+        .filter(x => x.flavor && x.when(gsRef));
+      v = flavorMatches[Math.floor(Math.random() * flavorMatches.length)];
+    } else {
+      v = first;
+    }
+    if (Array.isArray(v.paragraphsPool) && v.paragraphsPool.length > 0) {
+      const pool = v.paragraphsPool[Math.floor(Math.random() * v.paragraphsPool.length)];
+      v = { ...v, paragraphs: pool };
+    }
     return { dialog:d, variant:v };
   };
 
