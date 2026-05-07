@@ -1168,4 +1168,33 @@ export const DIALOGS = {
     ],
   },
 
+  // ─── 镇北暗巷（直接战斗入口示例） ───
+  back_alley: {
+    icon: '🐺', title: '镇北暗巷',
+    variants: [
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你拐进法达林镇北侧一条狭窄的暗巷。两侧的木墙渗着潮气，腐叶在脚下沙沙作响。镇民很少踏足这里——传说近来有什么东西在巷尾筑了窝。' },
+          { type:'text', text:'巷子尽头传来低沉的嗥叫。一头瘦骨嶙峋的灰狼从阴影里探出头来，黄色的眼瞳死死盯着你，嘴角滴落涎水。' },
+        ],
+        choices: [
+          { text:'正面迎战', triggerCombat:'goblin',
+            onWin: { paragraphs:[
+              { type:'text', text:'你给灰狼最后一击，它哀嚎一声倒在巷尾的腐叶里。镇北的居民今夜终于能睡个安稳觉。' },
+            ], result:{ gold:8, exp:18, fame:1 } },
+            onLose: { paragraphs:[
+              { type:'text', text:'灰狼的爪子重重撕开了你的护甲。你跌跌撞撞地从暗巷另一头逃出，浑身是血。' },
+            ], result:{ hp:-12 } },
+          },
+          { text:'尝试悄悄绕开（DEX 12+）', when: gs => gs.stats.DEX >= 12,
+            paragraphs:[
+              { type:'text', text:'你贴着墙根放轻脚步，灰狼的目光被一阵风掠过的落叶引开。等它转身回望时，你已经消失在巷口。' },
+            ], result:{ exp:6 }, back:true },
+          { text:'退回街道', back:true },
+        ],
+      },
+    ],
+  },
+
 };

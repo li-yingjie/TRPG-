@@ -20,8 +20,10 @@ function MapScreen({ map, mapId, gs, onClickNode, onBack }) {
       </svg>
 
       {map.nodes.map(n => {
-        // Determine unlock status
-        const isUnlocked = (gs.unlockedNodes || []).includes(n.id);
+        // Determine unlock status (defaultUnlocked counts even if not yet
+        // saved into the player's unlockedNodes — handles new nodes added
+        // after the save was created).
+        const isUnlocked = n.defaultUnlocked || (gs.unlockedNodes || []).includes(n.id);
         // If never unlocked AND has unlockHint, show as locked silhouette;
         // if no unlockHint and not unlocked, hide entirely (shouldn't happen now)
         const isHidden = !isUnlocked && !n.unlockHint;

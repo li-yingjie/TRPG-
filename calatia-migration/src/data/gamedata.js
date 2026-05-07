@@ -168,6 +168,8 @@ export const TOWN_NODES = [
   { id:'tresendar', kind:'dialog', icon:'🏚️', name:'特雷森达庄园', type:'building',
     pos:{x:50,y:85}, dialogId:'redbrand_hideout',
     unlockHint:'达兰说庄园东侧有一条酒窖密道...' },
+  { id:'back_alley', kind:'dialog', icon:'🐺', name:'镇北暗巷', type:'wild',
+    pos:{x:15,y:25}, dialogId:'back_alley', defaultUnlocked:true },
 ];
 
 export const CRYPT_NODES = [
