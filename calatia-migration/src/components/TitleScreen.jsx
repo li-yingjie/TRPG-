@@ -26,6 +26,9 @@ function TitleScreen({ onStart, onLoad, initialPanel = null }) {
       const t = TRAITS.find(x => x.id === tid);
       if (t) t.apply(ng);
     });
+    if (preset.inventory) {
+      ng.inventory = [...ng.inventory, ...preset.inventory];
+    }
     ng.maxHp = 25 + ng.stats.CON * 3 + (ng.hpBonus || 0);
     ng.hp = ng.maxHp;
     onLoad(ng);

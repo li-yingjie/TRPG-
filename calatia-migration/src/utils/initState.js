@@ -38,7 +38,9 @@ export const makeInitState = () => {
     healUsedToday: false,
     skills: [],
     skillCooldowns: {},
-    inventory: [],
+    // Basic survival kit every adventurer starts with — preset characters get
+    // class-specific gear added on top in TitleScreen.startPreset.
+    inventory: ['torch', 'rations', 'healing_potion'],
     questItems: [],
     flags: [],
     activeQuests: {},

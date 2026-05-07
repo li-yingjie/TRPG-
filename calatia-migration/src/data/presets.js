@@ -17,6 +17,7 @@ export const PRESETS = [
     stats: { STR:12, DEX:7, INT:4, CHA:5, CON:9, WIS:3 },
     traits: ['soldier', 'outlander'],
     goal: 'glory',
+    inventory: ['wooden_sword', 'leather_armor', 'torch'],
   },
   {
     id: 'wizard',
@@ -34,6 +35,7 @@ export const PRESETS = [
     stats: { STR:3, DEX:6, INT:13, CHA:8, CON:4, WIS:6 },
     traits: ['sage', 'acolyte'],
     goal: 'dragon',
+    inventory: ['apprentice_staff', 'spellbook_basic', 'healing_potion'],
   },
   {
     id: 'rogue',
@@ -51,6 +53,7 @@ export const PRESETS = [
     stats: { STR:5, DEX:11, INT:6, CHA:5, CON:5, WIS:8 },
     traits: ['criminal', 'outlander'],
     goal: 'wealth',
+    inventory: ['short_dagger', 'lockpicks', 'rope'],
   },
   {
     id: 'cleric',
@@ -68,6 +71,7 @@ export const PRESETS = [
     stats: { STR:5, DEX:4, INT:9, CHA:9, CON:5, WIS:8 },
     traits: ['acolyte', 'guild_merchant'],
     goal: 'glory',
+    inventory: ['holy_symbol', 'morning_mace', 'healing_potion', 'healing_potion'],
   },
   {
     id: 'ranger',
@@ -85,5 +89,6 @@ export const PRESETS = [
     stats: { STR:7, DEX:10, INT:5, CHA:5, CON:6, WIS:7 },
     traits: ['outlander', 'hermit'],
     goal: 'dragon',
+    inventory: ['short_dagger', 'rope', 'rations', 'rations'],
   },
 ];

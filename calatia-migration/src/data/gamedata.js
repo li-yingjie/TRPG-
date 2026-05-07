@@ -403,6 +403,18 @@ export const ITEM_INFO = {
   steel_dagger:   { icon:'🗡️', name:'精钢匕首',       desc:'琳内·格雷温德亲手挑选赠予的钢匕首，做工精良，DEX +1。' },
   dragon_scale:   { icon:'🐲', name:'绿龙鳞片',       desc:'维尼斯范留下的鳞片，坚硬如铁，在内华冬城可换得高价。' },
   rope:           { icon:'🪢', name:'结实的麻绳',     desc:'从船骸里翻出的一卷防水麻绳，攀爬与捆绑皆宜。' },
+
+  // ── 起手装备 / 基础物资 ──
+  torch:            { icon:'🔥', name:'火把',           desc:'松脂裹布制成的火把，能在地穴与夜路中燃烧约一小时。' },
+  rations:          { icon:'🥖', name:'干粮',           desc:'硬面包、风干肉与坚果，足够支撑数日旅行。' },
+  wooden_sword:     { icon:'🗡️', name:'练习长剑',       desc:'未经战阵但锋利的钢剑，城防军新兵的标配。' },
+  leather_armor:    { icon:'🥋', name:'皮甲',           desc:'轻便耐磨的皮质护甲，不会拖累动作。' },
+  apprentice_staff: { icon:'🪄', name:'学徒法杖',       desc:'白蜡木雕成，杖头镶嵌一块未启灵的水晶。' },
+  spellbook_basic:  { icon:'📘', name:'初阶咒文册',     desc:'魔法学院发给新生的咒语手册，记载了几个最基础的法术。' },
+  short_dagger:     { icon:'🔪', name:'短匕',           desc:'轻巧的双刃匕首，适合近身偷袭与日常使用。' },
+  lockpicks:        { icon:'🛠️', name:'撬锁工具组',     desc:'细针、撬棒与张力扳手，能开大多数普通门锁。' },
+  holy_symbol:      { icon:'✨', name:'泰摩拉圣徽',     desc:'银制双面硬币纹章，神职者用以引导神术。' },
+  morning_mace:     { icon:'🔨', name:'晨光锤',         desc:'神殿铸造的轻型钉锤，朴素而坚实。' },
 };
 
 export { DIALOGS } from './dialogs.js';
