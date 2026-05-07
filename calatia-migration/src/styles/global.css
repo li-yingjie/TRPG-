@@ -1804,8 +1804,9 @@ img.nav-tab-icon { width: 80px; height: 80px; object-fit: contain; display: bloc
 }
 .nav-tab-badge {
   position: absolute;
-  /* Sit inside the 80px icon's top-right corner with a small inset. */
-  top: 8px; right: calc(50% - 34px);
+  /* Tuck inside the artwork's top-right corner (icons have ~12px transparent
+     padding around their visual content). */
+  top: 18px; right: calc(50% - 24px);
   background: var(--danger);
   color: white;
   font-size: 0.55rem;
