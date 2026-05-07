@@ -2,6 +2,7 @@ import React from 'react';
 import { FaceAvatar } from './FaceAvatar.jsx';
 import { SKILLS } from '../data/gamedata.js';
 import { DdsIcon } from './DdsIcon.jsx';
+import { calcRate } from '../utils/helpers.js';
 export { CombatScreen };
 
 const AVATARS = undefined; // legacy fallback (was window.GAMEDATA.AVATARS, never defined in v14)
@@ -16,7 +17,7 @@ function CombatScreen({ combat, gs, onRoll, onFlee, onExit, onSkill }) {
 
   const playerHpPct = Math.max(0, playerHp / gs.maxHp * 100);
   const enemyHpPct  = Math.max(0, enemy.currentHp / enemy.hp * 100);
-  const winRate     = calcRate(gs.stats.STR, gs.stats.LCK);
+  const winRate     = calcRate(gs.stats.STR, gs.stats.WIS);
 
   const playerSkills = (gs.skills || []).map(sid => SKILLS[sid]).filter(Boolean);
 
@@ -30,7 +31,7 @@ function CombatScreen({ combat, gs, onRoll, onFlee, onExit, onSkill }) {
         <div className="combat-fighters">
           <div className="fighter-info">
             <div className="fighter-name">{gs.name} · Lv{gs.level||1}</div>
-            <div className="fighter-atk">ATK {gs.stats.STR} · LCK {gs.stats.LCK}</div>
+            <div className="fighter-atk">ATK {gs.stats.STR} · WIS {gs.stats.WIS}</div>
             <div className="fighter-hp-bar">
               <div className="fighter-hp-fill player" style={{width:playerHpPct+'%'}} />
             </div>
