@@ -4,6 +4,7 @@ import { TRAITS } from '../data/gamedata.js';
 import { makeInitState } from '../utils/initState.js';
 import { PRESETS } from '../data/presets.js';
 import { listSaves, deleteSave, formatSaveTime, SLOT_AUTO, SLOT_1, SLOT_2 } from '../utils/save.js';
+import bgVideo from '../bg2.mp4';
 export { TitleScreen };
 
 function TitleScreen({ onStart, onLoad, initialPanel = null }) {
@@ -132,7 +133,13 @@ function TitleScreen({ onStart, onLoad, initialPanel = null }) {
 
   // ── 主标题页 ──
   return (
-    <div className="title-screen">
+    <div className="title-screen title-screen-video">
+      <video
+        className="title-bg-video"
+        src={bgVideo}
+        autoPlay loop muted playsInline
+      />
+      <div className="title-bg-overlay" />
       <div className="title-logo">遗忘诸界</div>
       <div className="title-sub">DND · 文本 RPG 冒险</div>
 

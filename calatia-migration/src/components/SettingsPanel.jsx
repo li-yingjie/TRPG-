@@ -12,7 +12,7 @@ export function loadFontSettings() {
       lineHeight: s.lineHeight ?? 1.6,
     };
   } catch (e) {
-    return { fontSize: 15, lineHeight: 1.6 };
+    return { fontSize: 17, lineHeight: 1.6 };
   }
 }
 
@@ -114,7 +114,7 @@ function SettingsPanel({ gs, onClose, onNewGame, onLoad }) {
               伴随着洪亮的管乐器吹奏声，一个男人向着万人瞩目的高台缓步拾级而上。他冉冉屈膝，跪在国王跟前。
             </div>
 
-            <button className="settings-row-btn" onClick={() => updateFont({ fontSize: 15, lineHeight: 1.6 })}>
+            <button className="settings-row-btn" onClick={() => updateFont({ fontSize: 17, lineHeight: 1.6 })}>
               重置字体
             </button>
           </div>

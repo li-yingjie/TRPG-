@@ -1,11 +1,12 @@
-// D&D Forgotten Realms — 预设角色（Lost Mines of Phandelver 职业原型）
+// D&D 5e Forgotten Realms — 预设角色（Lost Mines of Phandelver 经典原型）
+// 沿用模组官方 pregen 的种族 / 职业 / 背景配置
 // stats 之和 = 40（base 30 + 10 自由点），特性在 onStart 时叠加
 export const PRESETS = [
   {
     id: 'fighter',
-    name: '凯南',
-    tagline: '人类战士',
-    intro: '你曾是内华冬城城防军的一名老兵，刀剑磨砺了你的意志。一封来自法达林镇的信让你踏上西行之路——那里需要真正的剑客。',
+    name: '托尔德克',
+    tagline: '山地矮人 · 战士',
+    intro: '内华冬城城防军老兵。一封来自法达林的信让你重披战甲。',
     face: {
       faceShape: 'square',
       skinTone: 'tan',
@@ -21,9 +22,9 @@ export const PRESETS = [
   },
   {
     id: 'wizard',
-    name: '艾莉薇',
-    tagline: '精灵法师',
-    intro: '你来自坎铁尔的魔法学院，精通古老的咒文。你追随着冈德伦·岩石探索者的线索来到剑湾，那本传说中的法术典籍就在某处等你。',
+    name: '艾瑞尔',
+    tagline: '高等精灵 · 法师',
+    intro: '坎铁尔魔法学院的咒法学徒，追寻法术熔炉的踪迹来到剑湾。',
     face: {
       faceShape: 'long',
       skinTone: 'pale',
@@ -39,9 +40,9 @@ export const PRESETS = [
   },
   {
     id: 'rogue',
-    name: '幽影',
-    tagline: '矮人盗贼',
-    intro: '你游走于内华冬城的贫民窟，靠着灵活的身手和永远的好运气活到了今天。法达林镇的红剑匪帮？听起来是个有趣的挑战。',
+    name: '皮平',
+    tagline: '林地半身人 · 盗贼',
+    intro: '内华冬城贫民窟出身。红剑匪帮听起来像是值得一试的挑战。',
     face: {
       faceShape: 'round',
       skinTone: 'dark',
@@ -57,9 +58,9 @@ export const PRESETS = [
   },
   {
     id: 'cleric',
-    name: '圣华',
-    tagline: '人类牧师',
-    intro: '你是泰摩拉神殿的侍僧，女神的幸运之光指引你来到法达林镇。嘉芮丽修女有一个紧急任务，需要一个不怕鬼的信徒去完成。',
+    name: '贾哈拉',
+    tagline: '半精灵 · 牧师',
+    intro: '泰摩拉神殿侍僧。女神的幸运之光指引你前往法达林镇。',
     face: {
       faceShape: 'round',
       skinTone: 'fair',
@@ -76,8 +77,8 @@ export const PRESETS = [
   {
     id: 'ranger',
     name: '塔尔辛',
-    tagline: '半精灵游侠',
-    intro: '永冬林是你的故乡，荒野是你的道场。那些在翠野小径绑架矮人商队的哥布林——你不会让它们逍遥法外。',
+    tagline: '木精灵 · 游侠',
+    intro: '永冬林之子。哥布林正在劫掠你熟悉的每一条小径。',
     face: {
       faceShape: 'long',
       skinTone: 'light',
@@ -90,5 +91,23 @@ export const PRESETS = [
     traits: ['outlander', 'hermit'],
     goal: 'dragon',
     inventory: ['short_dagger', 'rope', 'rations', 'rations'],
+  },
+  {
+    id: 'paladin',
+    name: '凡瑞斯',
+    tagline: '提夫林 · 圣武士',
+    intro: '受誓约束缚的赎罪者。剑湾的不义之事呼唤着你的剑与火。',
+    face: {
+      faceShape: 'square',
+      skinTone: 'dark',
+      hairStyle: 'topknot',
+      hairColor: 'black',
+      accessory: 'none',
+      expression: 'fierce',
+    },
+    stats: { STR:10, DEX:5, INT:5, CHA:9, CON:7, WIS:4 },
+    traits: ['acolyte', 'soldier'],
+    goal: 'glory',
+    inventory: ['wooden_sword', 'leather_armor', 'holy_symbol'],
   },
 ];

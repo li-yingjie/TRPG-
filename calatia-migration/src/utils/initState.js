@@ -42,6 +42,17 @@ export const makeInitState = () => {
     // class-specific gear added on top in TitleScreen.startPreset.
     inventory: ['torch', 'rations', 'healing_potion'],
     questItems: [],
+    // ── Main story progression ─────────────────────────────────
+    // act: 1..5 (see ACT_TITLES). chapter: free-form id within act.
+    // choices: tracks the player's defining decisions across the campaign,
+    //   read by variant `when` conditions to branch later acts.
+    //   e.g. { ally: 'harpers'|'zhentarim'|'drow'|'solo',
+    //          gundren: 'saved'|'died',
+    //          spider: 'killed'|'negotiated'|'betrayed',
+    //          glasstaff: 'spared'|'killed' }
+    act: 1,
+    chapter: 'prologue',
+    choices: {},
     flags: [],
     activeQuests: {},
     doneQuests: [],

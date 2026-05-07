@@ -170,6 +170,8 @@ export const TOWN_NODES = [
     unlockHint:'达兰说庄园东侧有一条酒窖密道...' },
   { id:'back_alley', kind:'dialog', icon:'🐺', name:'镇北暗巷', type:'wild',
     pos:{x:15,y:25}, dialogId:'back_alley', defaultUnlocked:true },
+  { id:'vineyard', kind:'dialog', icon:'🍷', name:'翠野葡萄庄园', type:'building',
+    pos:{x:85,y:78}, dialogId:'wines_intro', defaultUnlocked:true },
 ];
 
 export const CRYPT_NODES = [
@@ -358,6 +360,15 @@ export const SKILLS = {
     desc:'恢复全部 HP，但跳过 3 回合', cooldown:8,
     unlockLv: 5, type:'combat',
   },
+};
+
+// ── 主线五幕标题（Lost Mines of Phandelver 改编） ────────────
+export const ACT_TITLES = {
+  1: '法达林之雾',
+  2: '地窟与匪帮',
+  3: '回响洞穴',
+  4: '剑湾风暴',
+  5: '命运抉择',
 };
 
 // D&D 结局

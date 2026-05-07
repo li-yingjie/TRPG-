@@ -5,7 +5,7 @@
 :root {
   --bg-dark: #2a2418;
   --bg-mid:  #3a3122;
-  --paper:   #d8c8a8;
+  --paper:   #DCCFAE;
   --paper2:  #c4b49a;
   --paper3:  #b8a888;
   --text:    #e8d8b0;
@@ -20,7 +20,7 @@
   --border:  rgba(212,160,32,0.3);
   --paper-border: rgba(30,20,10,0.15);
   /* 字体设置（由 applyFontSettings 动态覆盖） */
-  --font-size-base: 15px;
+  --font-size-base: 17px;
   --line-height-base: 1.6;
 }
 
@@ -49,8 +49,14 @@ html, body, #root {
 .top-status {
   position: absolute;
   top: 0; left: 0; right: 0;
-  background: linear-gradient(180deg, rgba(15,12,8,0.85) 0%, rgba(15,12,8,0.55) 70%, transparent 100%);
-  padding: calc(env(safe-area-inset-top) + 12px) 10px 16px;
+  /* Very subtle warm tint that fades to transparent — reads as a soft
+     vignette over either the painted map or the parchment dialog without
+     dominating either. */
+  background: linear-gradient(180deg,
+    rgba(60,44,28,0.32) 0%,
+    rgba(60,44,28,0.12) 55%,
+    rgba(60,44,28,0) 100%);
+  padding: calc(env(safe-area-inset-top) + 12px) 10px 18px;
   z-index: 10;
   pointer-events: none;
 }
@@ -61,7 +67,7 @@ html, body, #root {
   gap: 8px;
 }
 .ts-avatar {
-  width: 44px; height: 44px;
+  width: 56px; height: 56px;
   background: rgba(40,30,20,0.85);
   border: 2px solid var(--gold);
   border-radius: 4px;
@@ -168,6 +174,14 @@ html, body, #root {
   font-size: 0.78rem;
   color: var(--text);
   font-weight: 600;
+}
+.ts-act {
+  font-size: 0.6rem;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  opacity: 0.85;
+  white-space: nowrap;
+  margin-left: 4px;
 }
 .ts-hp-text {
   font-size: 0.62rem;
@@ -421,21 +435,22 @@ html, body, #root {
   flex-shrink: 0;
 }
 .dialog-back-btn {
-  background: rgba(30,20,10,0.08);
-  border: 1px solid rgba(30,20,10,0.2);
+  background: transparent;
+  border: none;
   color: var(--paper-text2);
-  width: 30px; height: 30px;
-  border-radius: 4px;
+  width: 32px; height: 32px;
   cursor: pointer;
-  font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0.85;
+  transition: opacity 0.15s;
 }
+.dialog-back-btn:hover { opacity: 1; }
 .dialog-icon {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(30,20,10,0.06);
-  border-radius: 50%;
-  border: 1.5px solid rgba(30,20,10,0.3);
   flex-shrink: 0;
 }
 .dialog-title-block { flex: 1; min-width: 0; }
@@ -648,8 +663,11 @@ html, body, #root {
 .choice-btn.has-rate { align-items: flex-start; }
 .choice-btn.has-rate .rpg-icon { margin-top: 2px; }
 
+.choice-btn:hover:not(.disabled) {
+  background: rgba(30,20,10,0.07);
+}
 .choice-btn:active:not(.disabled) {
-  background: rgba(30,20,10,0.06);
+  background: rgba(30,20,10,0.12);
   transform: scale(0.988);
 }
 .choice-btn.disabled { opacity: 0.35; pointer-events: none; }
@@ -1764,21 +1782,50 @@ html, body, #root {
   justify-content: center;
   text-align: center;
   padding: 20px;
+  overflow: hidden;
+}
+/* Fullscreen video background — title page only. The cover-fit guarantees
+   the frame fills the whole viewport with no letterboxing. */
+.title-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+.title-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, rgba(15,10,4,0.35), rgba(15,10,4,0.78) 90%),
+    linear-gradient(180deg, rgba(15,10,4,0.4) 0%, rgba(15,10,4,0.65) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+.title-screen-video > *:not(.title-bg-video):not(.title-bg-overlay) {
+  position: relative;
+  z-index: 2;
 }
 .title-logo {
   font-size: 2.4rem;
-  color: var(--gold);
+  color: #f3e3b8;
   letter-spacing: 0.15em;
   font-weight: 700;
   margin-bottom: 8px;
+  text-shadow:
+    0 2px 8px rgba(0,0,0,0.85),
+    0 0 24px rgba(212,160,32,0.25);
   text-shadow: 0 0 30px rgba(212,160,32,0.6);
   font-family: Georgia, serif;
 }
 .title-sub {
   font-size: 0.72rem;
-  color: var(--text3);
+  color: #c8b894;
   letter-spacing: 0.6em;
   margin-bottom: 50px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 .title-btn {
   background: transparent;
@@ -1801,7 +1848,11 @@ html, body, #root {
 .bottom-nav {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(15,12,8,0.55) 60%, rgba(15,12,8,0.85) 100%);
+  /* Mirror of the top vignette — subtle and non-dominant. */
+  background: linear-gradient(180deg,
+    rgba(60,44,28,0) 0%,
+    rgba(60,44,28,0.12) 45%,
+    rgba(60,44,28,0.32) 100%);
   display: flex;
   padding: 6px 16px max(6px, env(safe-area-inset-bottom));
   z-index: 8;
@@ -2608,19 +2659,30 @@ img.nav-tab-icon { width: 80px; height: 80px; object-fit: contain; display: bloc
 /* 预设角色卡片列表 */
 .preset-grid {
   width: 100%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 4px;
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 .preset-card {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.preset-card-face { margin-bottom: 4px; }
+.preset-card-body { width: 100%; text-align: center; }
+.preset-card-header { justify-content: center; }
+.preset-card-chips { justify-content: center; }
+.preset-card {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   background: rgba(255,255,255,0.03);
   border: 1.5px solid rgba(212,160,32,0.25);
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 10px 8px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
   text-align: left;
@@ -2649,33 +2711,33 @@ img.nav-tab-icon { width: 80px; height: 80px; object-fit: contain; display: bloc
   margin-bottom: 5px;
 }
 .preset-card-name {
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: var(--gold);
   font-weight: 600;
 }
 .preset-card-tagline {
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   color: var(--text3);
   flex: 1;
 }
 .preset-card-goal {
-  font-size: 0.9rem;
+  font-size: 0.78rem;
 }
 .preset-card-intro {
-  font-size: 0.75rem;
+  font-size: 0.62rem;
   color: var(--text2);
-  line-height: 1.55;
-  margin-bottom: 7px;
+  line-height: 1.45;
+  margin-bottom: 5px;
 }
 .preset-card-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
 }
 .preset-chip {
-  font-size: 0.65rem;
-  padding: 2px 7px;
-  border-radius: 10px;
+  font-size: 0.55rem;
+  padding: 1px 5px;
+  border-radius: 8px;
   border: 1px solid rgba(212,160,32,0.4);
   color: var(--gold);
   background: rgba(212,160,32,0.08);
@@ -2843,6 +2905,20 @@ img.nav-tab-icon { width: 80px; height: 80px; object-fit: contain; display: bloc
   font-size: 0.82rem;
   color: var(--paper-text);
 }
+.story-icon-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0;
+  opacity: 0.95;
+}
+.story-icon-label {
+  font-size: 0.72rem;
+  color: var(--paper-text3);
+  letter-spacing: 0.15em;
+}
+
 .settings-empty {
   color: var(--paper-text3);
   font-size: 0.85rem;

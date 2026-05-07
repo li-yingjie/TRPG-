@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaceAvatar } from './FaceAvatar.jsx';
 import settingIcon from '../icon/setting.png';
+import { ACT_TITLES } from '../data/gamedata.js';
 export { TopStatus };
 
 function TopStatus({ gs, onOpenQuests, onOpenSettings }) {
@@ -11,12 +12,15 @@ function TopStatus({ gs, onOpenQuests, onOpenSettings }) {
     <div className="top-status">
       <div className="ts-row">
         <div className="ts-avatar">
-          {gs.face ? <FaceAvatar face={gs.face} size={44} /> : '🧙'}
+          {gs.face ? <FaceAvatar face={gs.face} size={56} /> : '🧙'}
           <div className="ts-lv-badge">Lv{gs.level||1}</div>
         </div>
         <div className="ts-info">
           <div className="ts-name-row">
             <span className="ts-name">{gs.name}</span>
+            {gs.act && ACT_TITLES[gs.act] && (
+              <span className="ts-act">第{['一','二','三','四','五'][gs.act-1]||gs.act}幕 · {ACT_TITLES[gs.act]}</span>
+            )}
             {gs.freeStatPoints > 0 && <span className="ts-free-pts">+{gs.freeStatPoints} 点可分配</span>}
           </div>
           <div className="ts-hp-bar">

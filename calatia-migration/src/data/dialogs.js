@@ -240,6 +240,38 @@ export const DIALOGS = {
   bulletin_enter: {
     icon: '🏛️', title: '镇民大会堂',
     variants: [
+      // ── 第一幕 · 序章：你是谁、来做什么、怎么开始 ──
+      {
+        when: gs => gs.act === 1 && gs.chapter === 'prologue',
+        paragraphs: [
+          { type:'text', text:'你推开镇民大会堂厚重的橡木门，迎面是潮湿的木地板和劣质烛蜡的味道。墙上挂着一面褪色的内华冬城旗。' },
+          { type:'text', text:'你来这里是因为一封信——矮人冈德伦·岩石探索者雇你押送补给到法达林镇，约定七日为期。今日已是第十日。补给完好，但雇主消失了。' },
+          { type:'npc', text:'"咳——你是新来的冒险者？"主席台后一个发福的中年男人放下鹅毛笔，眼神游移，"我是镇长哈宾·韦斯特。如果你来打听冈德伦……我也好几天没见过他了。"' },
+          { type:'npc', text:'他压低声音："不过你既然来了……镇上事情不少。崔鲍尔小道有兽人闹事，报酬五十金币。至于那帮戴红色斗篷的家伙，我没法管。"' },
+          { type:'text', text:'你环顾大厅，注意到三件事：' },
+          { type:'text', text:'· 角落里一个**身披灰斗篷的女人**正盯着你看，她的腰间别着一枚竖琴形银徽——你认得，那是**哈珀斯**的标志。' },
+          { type:'text', text:'· 公告栏旁站着一位**石柱旅馆的老板娘**，似乎想跟你说什么但欲言又止。' },
+          { type:'text', text:'· 韦斯特镇长背后的小木门虚掩着，门缝里飘出**烟草味和压低的争吵声**。' },
+        ],
+        choices: [
+          { text:'走向哈珀斯女人，向她请求合作', result: { choices: { ally: 'harpers' }, advanceAct: 1, chapter: 'investigation', flags: ['act1_started'] }, paragraphs:[
+            { type:'npc', text:'灰斗篷女人微微点头："我是西尔达·哈尔温特，哈珀斯派来的。冈德伦的失踪不是巧合——红剑匪帮和某个'+'「黑蜘蛛」'+'有牵连。"' },
+            { type:'npc', text:'"如果你愿意暗中调查，我会给你情报和庇护。但你必须低调——韦斯特和镇上一半的人，都被他们买通了。"' },
+            { type:'text', text:'你和西尔达握手。从今往后，你是哈珀斯的眼睛。' },
+          ], gold: 0, fame: 2, back: true },
+
+          { text:'公开接受镇长悬赏，正大光明调查', result: { choices: { ally: 'solo' }, advanceAct: 1, chapter: 'investigation', flags: ['act1_started'] }, paragraphs:[
+            { type:'npc', text:'韦斯特如释重负："好！好！这位英雄，我代表全镇感谢你！"他拍着桌子大声宣告，"任何线索都向我汇报！"' },
+            { type:'text', text:'你接过五十金币的预付款。但你也注意到——大厅角落的灰斗篷女人皱起了眉，悄然离去。一切耳目，从此都盯着你。' },
+          ], gold: 50, fame: 5, back: true },
+
+          { text:'不动声色，先去石柱旅馆听消息', result: { choices: { ally: 'pending' }, advanceAct: 1, chapter: 'investigation', flags: ['act1_started'] }, paragraphs:[
+            { type:'text', text:'你点头致意，转身离开。没人知道你的立场——这正是你想要的。' },
+            { type:'text', text:'走出大会堂时，旅馆老板娘悄悄塞给你一张纸条："**夜里来旅馆，单独的客人有话和你说。**"' },
+          ], flags: ['tavern_secret_invite'], back: true },
+        ],
+      },
+
       {
         when: gs => !gs.flags.includes('redbrand_cleared'),
         paragraphs: [
@@ -1163,6 +1195,199 @@ export const DIALOGS = {
             { type:'text', text:'黑蜘蛛披风一卷，化为黑雾消散在密道中。你毫发未伤地站在了法术熔炉前。' },
           ], result:{ flags:['blackspider_dead','blackspider_negotiated'], gold:80, fame:20 }, goto:'black_spider_lair' },
           { text:'假意交出钥匙，伺机偷袭（DEX 16+）', when: gs => gs.stats.DEX >= 16, result:{ combat:'drow_mage', flags:['blackspider_dead','blackspider_betrayed'] }, msg:'你伸手递出钥匙——就在瑞索玛伸手接过的一瞬间，你的另一只手已经将匕首抵到了他的咽喉。但卓尔精灵的反应远比你预想的快，他向后翻身咏唱起咒语！', goto:'black_spider_lair' },
+        ],
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════
+  // 翠野葡萄庄园投毒案（侦探/破案玩法示例）
+  // 真凶：米沙（被真塔里姆收买的酒窖工）
+  // 调查 4 个嫌疑人 → 收集 ≥3 条线索 → 指控
+  // 指控错误会扣声望/金币，正确则获得丰厚奖励
+  // ═══════════════════════════════════════════════
+  wines_intro: {
+    icon: '🍷', title: '翠野葡萄庄园',
+    variants: [
+      // 案件已结束
+      {
+        when: gs => gs.flags?.includes('wines_solved'),
+        paragraphs: [
+          { type:'text', text:'庄园已恢复平静。葡萄藤在阳光下重新泛起紫色光泽，工人们哼着歌在田垄间穿梭。庄园主韦尔顿见你来访，大笑着塞给你一瓶上好的红酒。' },
+        ],
+        choices: [
+          { text:'品尝一口（恢复 8 HP）', result:{ hp:8 }, msg:'醇厚的酒香让你浑身放松。', back:true },
+          { text:'告辞', back:true },
+        ],
+      },
+      // 已开始调查 → 直接进调查中枢
+      {
+        when: gs => gs.flags?.includes('wines_started'),
+        paragraphs: [
+          { type:'text', text:'你又一次踏上翠野庄园的青石小径。空气里依然飘着那股淡淡的、不属于葡萄的甜腻味——就像有人把腐烂的果子撒在了酒桶里。' },
+        ],
+        choices: [
+          { text:'继续调查', goto:'wines_investigate' },
+          { text:'离开', back:true },
+        ],
+      },
+      // 第一次到达 → 案件开场
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'翠野葡萄庄园坐落在法达林镇东南，一道矮石墙圈出层层的紫红色葡萄园。但今日的庄园弥漫着不安——成片的葡萄叶在初秋蜷缩发黑，空气里飘着甜腻的腐败味。' },
+          { type:'text', text:'庄园主**奥兰·韦尔顿**——一个胡子花白的高大老人——正瘫坐在石阶上。他面前的地上躺着一具盖着白布的尸体。' },
+          { type:'npc', text:'"这是这个月**第三个**了。"韦尔顿的嗓音哑如砂纸，"都是喝了我酒窖里的酒——上等货色，从未出过事的红宝石酒。"' },
+          { type:'npc', text:'"我用全部身家发誓：是有人**在我酒里下毒**。但我手下个个都是干了二十年的老人……我已经向韦斯特镇长报案，但他只敢咳嗽不敢说话。"' },
+          { type:'npc', text:'他抬头看你，眼里燃起希望："如果你能找出真凶——一百金币、外加我私藏的'+ '一柄精钢剑。"' },
+        ],
+        choices: [
+          { text:'接受调查', result:{ flags:['wines_started'] }, goto:'wines_investigate' },
+          { text:'"这超出我的能力。"（拒绝）', back:true },
+        ],
+      },
+    ],
+  },
+
+  // 调查中枢：4 个顶层操作 → 子菜单
+  wines_investigate: {
+    icon: '🔍', title: '调查 · 翠野葡萄庄园',
+    variants: [
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你站在庄园中央的院子里。可以从哪个方向继续调查？' },
+        ],
+        choices: [
+          { text:'询问嫌疑人', goto:'wines_suspects' },
+          { text:'实地调查现场', goto:'wines_search' },
+          { text:'召集众人指控真凶',
+            when: gs => {
+              const clues = ['clue_son','clue_merchant','clue_witch','clue_misha','clue_cellar'].filter(f => gs.flags?.includes(f)).length;
+              return clues >= 3;
+            },
+            goto:'wines_accuse' },
+          { text:'离开庄园，明日再来', back:true },
+        ],
+      },
+    ],
+  },
+
+  // 子菜单 · 询问嫌疑人（4 选项内）
+  wines_suspects: {
+    icon: '🗣️', title: '询问嫌疑人',
+    variants: [
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你想去找谁谈谈？' },
+        ],
+        choices: [
+          { text:'询问维克托（庄园主之子）', when: gs => !gs.flags?.includes('clue_son'), paragraphs:[
+            { type:'text', text:'你在石柱旅馆找到维克托。他酒杯放下时手都在抖。' },
+            { type:'npc', text:'"你怀疑我？我**这个月有十三天都泡在这间旅馆里**——汤姆林、半个镇子的人都能作证！"' },
+            { type:'text', text:'**线索：** 维克托有牢固的不在场证明。' },
+          ], result:{ flags:['clue_son'] }, stayHere:true },
+
+          { text:'询问泰伦（外来酒商）', when: gs => !gs.flags?.includes('clue_merchant'), paragraphs:[
+            { type:'text', text:'泰伦坐在旅店窗边，戴着深水城商会的徽章。' },
+            { type:'npc', text:'"我是来**收购**翠野的，不是来害死它的。我的酒来自深水城百年酒坊，跟你们这片葡萄不沾边。"' },
+            { type:'text', text:'**线索：** 他事发当晚还在赶来的路上，驿站印章作证。' },
+          ], result:{ flags:['clue_merchant'] }, stayHere:true },
+
+          { text:'拜访奥尔加（森林巫医）', when: gs => !gs.flags?.includes('clue_witch'), paragraphs:[
+            { type:'text', text:'你穿过松林，找到苔藓覆盖的木屋。' },
+            { type:'npc', text:'老妇人哼了一声："那是月光草煎剂，我每年都洒在葡萄藤外圈。这是**保护**咒，不是诅咒。"' },
+            { type:'text', text:'**线索：** 奥尔加无辜，"诅咒"实为村民误传。' },
+          ], result:{ flags:['clue_witch'], items:['silver_herb'] }, stayHere:true },
+
+          { text:'审问米沙（新酒窖工）', when: gs => !gs.flags?.includes('clue_misha'), paragraphs:[
+            { type:'text', text:'米沙瘦小苍白，回避你的目光。' },
+            { type:'npc', text:'"我……我什么都不知道。我才来三个月……"她的眼神向左上方瞟了一下——典型的说谎微表情。' },
+            { type:'text', text:'**线索：** 米沙紧张回避，故事经不起追问。' },
+          ], result:{ flags:['clue_misha'] }, stayHere:true },
+
+        ],
+      },
+    ],
+  },
+
+  // 子菜单 · 实地调查（2-3 选项）
+  wines_search: {
+    icon: '🔍', title: '实地调查',
+    variants: [
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你想搜查哪里？' },
+        ],
+        choices: [
+          { text:'搜查酒窖（DEX 12+）', when: gs => gs.stats.DEX >= 12 && !gs.flags?.includes('clue_cellar'), paragraphs:[
+            { type:'text', text:'你借着火把摸进酒窖深处，脚踢到——' },
+            { type:'text', text:'**一个空玻璃瓶**，标签写着"**午夜茛菪精——剧毒**"。瓶盖内侧还残留深紫色液体。' },
+            { type:'text', text:'瓶旁有一张羊皮纸碎片：**"任务完成后凭暗语领赏。——Z"**' },
+            { type:'text', text:'**关键线索：** "Z" 是真塔里姆的标志。投毒者是组织派来的内应。' },
+          ], result:{ flags:['clue_cellar', 'clue_zhentarim'], items:['lockpicks'] }, stayHere:true },
+
+          { text:'(DEX 不足，无法翻越酒窖暗锁)', when: gs => gs.stats.DEX < 12 && !gs.flags?.includes('clue_cellar'),
+            msg:'你试了几次都失败了。', stayHere:true },
+
+        ],
+      },
+    ],
+  },
+
+  // 指控阶段：4 个嫌疑人 → 4 个不同结局
+  wines_accuse: {
+    icon: '⚖️', title: '指控真凶',
+    variants: [
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你站在韦尔顿庄园的厅堂里，把所有嫌疑人召集到面前。维克托面带宿醉、泰伦傲慢端坐、奥尔加抱着草药篮、米沙缩在最远的角落……' },
+          { type:'text', text:'韦尔顿目光沉重："说吧，是谁。"' },
+        ],
+        choices: [
+          // ── 错误指控：维克托 ──
+          { text:'"是维克托。他想继承家业。"', paragraphs:[
+            { type:'text', text:'维克托脸色由白转红："你！你竟敢——"汤姆林立刻站出来："这不可能！他每晚都在我旅馆！"' },
+            { type:'text', text:'韦尔顿失望地摆手："你毁了我儿子的名声。出去吧。"庄园主当场撤回赏金。村民开始议论你是冒牌冒险者。' },
+            { type:'text', text:'**结果：** 错误指控（声望 -5，无奖励）。真凶仍逍遥法外，**毒酒还会再次出现**。' },
+          ], result:{ fame:-5, flags:['wines_failed'] }, back:true },
+
+          // ── 错误指控：泰伦 ──
+          { text:'"是酒商泰伦。他要垄断生意。"', paragraphs:[
+            { type:'text', text:'泰伦笑出声，从怀里抽出一沓盖着深水城商会大印的票据："我事发当晚还在赶来法达林的路上，小子。这是我的驿站记录。"' },
+            { type:'text', text:'韦尔顿摇头："你抓错了人。"泰伦冷哼一声后扬长而去——隔日他向深水城商会**正式起诉**你诽谤。' },
+            { type:'text', text:'**结果：** 错误指控（金币 -50 法律赔偿，声望 -3）。' },
+          ], result:{ gold:-50, fame:-3, flags:['wines_failed'] }, back:true },
+
+          // ── 错误指控：奥尔加 ──
+          { text:'"是巫医奥尔加。她下了诅咒。"', paragraphs:[
+            { type:'text', text:'奥尔加缓缓掏出那束月光草，把它递给在场所有人。一位老葡萄农惊呼："这……这是我们家代代用的驱虫草！我们都用过！"' },
+            { type:'text', text:'你被当众揭穿是无知与偏见的化身。奥尔加默默离开了庄园——从此，附近所有的草药师都拒绝向你出售药材。' },
+            { type:'text', text:'**结果：** 错误指控（声望 -8，巫医不再向你售药）。' },
+          ], result:{ fame:-8, flags:['wines_failed','witch_hostile'] }, back:true },
+
+          // ── 正确指控：米沙 ──
+          { text:'"是米沙。她是真塔里姆的内应。"',
+            when: gs => gs.flags?.includes('clue_misha') || gs.flags?.includes('clue_cellar'),
+            paragraphs:[
+            { type:'text', text:'米沙的脸刹那间没了血色。"我……我没有……"' },
+            { type:'text', text:'你拿出酒窖里找到的羊皮纸碎片：**"任务完成后凭暗语领赏。——Z"**——所有人倒吸一口冷气。米沙突然撒腿就跑！' },
+          ],
+          // 直接接战斗：与逃跑的米沙对决
+          triggerCombat:'redbrand',
+          onWin:{ paragraphs:[
+            { type:'text', text:'你截住了她，抢回了她随身携带的剩余毒瓶。米沙瘫坐在地上，最终供述：她半年前被真塔里姆胁迫——他们绑架了她在博德之门的妹妹，命令她毁掉翠野庄园，让真塔里姆低价收购酒源。' },
+            { type:'text', text:'韦尔顿庄园主当众跪下，握住你的手老泪纵横。村民们高呼你的名字。' },
+            { type:'text', text:'**结果：** 案件告破！获得**100 金币 + 精钢剑 + 声望 +12**。真塔里姆从此把你列入暗杀名单——但你也获得了**哈珀斯**的高度信任。' },
+          ], result:{ gold:100, fame:12, items:['精钢剑'], flags:['wines_solved','wines_misha_defeated'], choices:{ ally:'harpers_strong' } } },
+          onLose:{ paragraphs:[
+            { type:'text', text:'米沙身手敏捷，从你指缝中溜走，消失在森林深处。你揭穿了她，但没能抓住她——韦尔顿仍然给你了一半赏金。真塔里姆从此盯上了你。' },
+          ], result:{ gold:50, fame:6, flags:['wines_solved','misha_escaped'] } },
+          },
+
         ],
       },
     ],

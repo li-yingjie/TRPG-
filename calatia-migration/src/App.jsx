@@ -327,6 +327,18 @@ export default function App() {
           ng.activeQuests[qid] = step;
         }
       }
+      // Track defining story decisions: result.choices = { ally: 'harpers', ... }
+      // Variants can read these via gs.choices.X to branch.
+      if (effect.choices) {
+        ng.choices = { ...(ng.choices || {}), ...effect.choices };
+      }
+      // Advance the campaign to a new act + chapter.
+      if (effect.advanceAct) {
+        ng.act = effect.advanceAct;
+        if (effect.chapter) ng.chapter = effect.chapter;
+      } else if (effect.chapter) {
+        ng.chapter = effect.chapter;
+      }
       return ng;
     });
   };
@@ -349,8 +361,6 @@ export default function App() {
       const enemyId = choice.triggerCombat;
       const enemy = ENEMIES[enemyId];
       if (!enemy) { toast(`敌人未定义: ${enemyId}`); return; }
-      // Append a "你拔剑迎战" line to story log
-      setStoryLog(prev => [...prev, { type:'system', text:`> 你选择：${choice.text}` }]);
       setPendingChoices([]);
       // Start combat
       setCombat({
@@ -650,10 +660,15 @@ export default function App() {
 
     applyEffect(outcome);
 
-    // Append result + outcome rewards to story log
+    // Append the consequence of the choice to the story log.
+    // We intentionally DON'T echo the choice text itself — readers know what
+    // they picked and the system message was redundant.
     const newPara = [];
-    // Add player's choice as system message
-    newPara.push({ type:'system', text:`> 你选择：${choice.text}` });
+    const subParas = success ? (choice.paragraphs || choice.successParagraphs)
+                             : (choice.failParagraphs || choice.paragraphs);
+    if (Array.isArray(subParas) && subParas.length > 0) {
+      newPara.push(...subParas);
+    }
     if (resultText) {
       newPara.push({ type:'result', text:resultText, success:!isFumble && success, outcome });
     }
@@ -706,13 +721,15 @@ export default function App() {
     }, 100);
   };
 
-  // Reload the root dialog (the one originally opened from map) and show its menu
+  // Reload the root dialog menu — re-evaluate variant (state may have changed)
+  // and re-show its choices. We do NOT re-append paragraphs to the story log,
+  // because the player has already read them; doing so would spam the log on
+  // every sub-choice click.
   const loadRootMenu = () => {
     const root = rootDialog || activeDialog;
     const r = pickVariant(root);
     if (r) {
       setActiveDialog(root);
-      setStoryLog(prev => [...prev, { type:'chapter', title:r.dialog.title, icon:r.dialog.icon }, ...r.variant.paragraphs]);
       setPendingChoices(r.variant.choices);
     } else {
       setPendingChoices([{ text:'继续', _close:true }]);
