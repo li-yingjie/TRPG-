@@ -22,6 +22,7 @@ import {
 import { makeInitState } from './utils/initState.js';
 import { writeSave, loadSave, SLOT_AUTO } from './utils/save.js';
 import { SettingsPanel, loadFontSettings, applyFontSettings } from './components/SettingsPanel.jsx';
+import { preloadSceneImages } from './utils/preload.js';
 import { ZoomMap } from './components/ZoomMap.jsx';
 
 
@@ -47,6 +48,8 @@ export default function App() {
 
   // Apply saved font settings on mount
   React.useEffect(() => { applyFontSettings(loadFontSettings()); }, []);
+  // Warm the browser cache for every scene image up-front.
+  React.useEffect(() => { preloadSceneImages(); }, []);
 
   // Check for ending whenever gs changes (in dialog/map only, not during combat)
   React.useEffect(() => {
