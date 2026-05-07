@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd calatia-migration && npm install && npm run build",
+  "outputDirectory": "calatia-migration/dist",
+  "installCommand": "echo skip-root-install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
