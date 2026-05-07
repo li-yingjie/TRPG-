@@ -252,7 +252,7 @@ html, body, #root {
 
 .map-title {
   position: absolute;
-  top: 12px; left: 12px;
+  top: calc(env(safe-area-inset-top) + 100px); left: 12px;
   font-size: 0.72rem;
   color: var(--text);
   letter-spacing: 0.2em;
@@ -283,7 +283,7 @@ html, body, #root {
 
 .compass {
   position: absolute;
-  top: 10px; right: 10px;
+  top: calc(env(safe-area-inset-top) + 100px); right: 10px;
   width: 40px; height: 40px;
   opacity: 0.7; pointer-events: none; z-index: 5;
 }
@@ -2879,7 +2879,7 @@ img.nav-tab-icon { width: 80px; height: 80px; object-fit: contain; display: bloc
 
 .zoom-map-title {
   position: absolute;
-  top: 14px;
+  top: calc(env(safe-area-inset-top) + 100px);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(20,15,8,0.78);
