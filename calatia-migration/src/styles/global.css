@@ -42,13 +42,14 @@ html, body, #root {
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 /* ── Top status bar ── */
 .top-status {
   background: linear-gradient(180deg, #1a1610 0%, #2a2418 100%);
   border-bottom: 1px solid rgba(212,160,32,0.3);
-  padding: 8px 10px;
+  padding: max(8px, env(safe-area-inset-top)) 10px 8px;
   flex-shrink: 0;
   z-index: 10;
 }
@@ -1766,14 +1767,15 @@ html, body, #root {
    BOTTOM NAVIGATION
 ══════════════════════ */
 .bottom-nav {
-  position: relative;
-  background: linear-gradient(180deg, #1a1610 0%, #0f0c08 100%);
-  border-top: 1px solid rgba(212,160,32,0.3);
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(15,12,8,0.55) 60%, rgba(15,12,8,0.85) 100%);
   display: flex;
-  flex-shrink: 0;
-  padding: 6px 4px max(6px, env(safe-area-inset-bottom));
+  padding: 6px 16px max(6px, env(safe-area-inset-bottom));
   z-index: 8;
+  pointer-events: none;
 }
+.bottom-nav .nav-tab { pointer-events: auto; }
 .nav-tab {
   flex: 1;
   background: transparent;
