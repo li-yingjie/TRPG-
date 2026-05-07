@@ -6,8 +6,12 @@ function MapScreen({ map, mapId, gs, onClickNode, onBack }) {
   return (
     <div className={`map-screen ${map.bg}`}>
       {map.bg === 'world' ? <WorldTerrain /> : <TownTerrain />}
-      <div className="map-title">{map.title}</div>
-      {map.parent && <button className="map-back-btn" onClick={onBack}>← 返回上层</button>}
+      <div className="map-title">
+        {map.parent && (
+          <button className="map-title-back" onClick={onBack} aria-label="返回上层">←</button>
+        )}
+        <span>{map.title}</span>
+      </div>
       <svg className="compass" viewBox="0 0 48 48">
         <circle cx="24" cy="24" r="20" fill="rgba(0,0,0,0.4)" stroke="#d4a020" strokeWidth="1"/>
         <path d="M24 6 L20 24 L24 22 L28 24 Z" fill="#c84030"/>

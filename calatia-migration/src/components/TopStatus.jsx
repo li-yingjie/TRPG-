@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaceAvatar } from './FaceAvatar.jsx';
+import settingIcon from '../icon/setting.png';
 export { TopStatus };
 
 function TopStatus({ gs, onOpenQuests, onOpenSettings }) {
@@ -51,7 +52,9 @@ function TopStatus({ gs, onOpenQuests, onOpenSettings }) {
             📜
             {activeCnt > 0 && <span className="ts-btn-badge">{activeCnt}</span>}
           </button>
-          <button className="ts-btn ts-btn-settings" onClick={onOpenSettings}>⚙️</button>
+          <button className="ts-btn ts-btn-settings" onClick={onOpenSettings}>
+            <img src={settingIcon} alt="设置" draggable={false} />
+          </button>
         </div>
       </div>
     </div>
