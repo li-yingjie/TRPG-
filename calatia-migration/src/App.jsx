@@ -161,8 +161,9 @@ export default function App() {
       toast('🗺️ 这里的故事尚未揭晓...');
       return;
     }
-    // Check unlock status
-    const isUnlocked = (gs.unlockedNodes || []).includes(n.id);
+    // Check unlock status (defaultUnlocked covers nodes added after the save
+    // was created, since they aren't in gs.unlockedNodes for old saves).
+    const isUnlocked = n.defaultUnlocked || (gs.unlockedNodes || []).includes(n.id);
     if (!isUnlocked) {
       toast(n.unlockHint || '🔒 你还不知道这是什么地方');
       return;
