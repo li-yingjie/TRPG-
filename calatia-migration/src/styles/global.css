@@ -84,22 +84,44 @@ html, body, #root {
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
-.ts-bars {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.ts-hp-bar {
+  position: relative;
+  height: 12px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(212,160,32,0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2px;
 }
-.ts-hp-bar, .ts-exp-bar {
+.ts-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2e7d4f, #5aa060);
+  transition: width 0.5s ease;
+}
+.ts-hp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  color: #f3e8c8;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.ts-exp-bar {
   height: 5px;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(212,160,32,0.2);
+  background: rgba(40,28,12,0.7);
+  border: 1px solid rgba(212,160,32,0.25);
   border-radius: 3px;
   overflow: hidden;
 }
-.ts-hp-fill { height: 100%; background: linear-gradient(90deg, #2e7d4f, #5aa060); transition: width 0.5s ease; }
-.ts-exp-bar { height: 3px; }
-.ts-exp-fill { height: 100%; background: linear-gradient(90deg, #b8860b, #f0d080); transition: width 0.5s ease; }
+.ts-exp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b8860b, #f0d080);
+  transition: width 0.5s ease;
+}
 
 .ts-day-row {
   display: flex;
@@ -115,7 +137,6 @@ html, body, #root {
 .ts-action-pip.on { color: var(--success); }
 .ts-action-pip.off { color: var(--text3); opacity: 0.4; }
 .ts-free-pts {
-  margin-left: auto;
   background: rgba(212,160,32,0.2);
   border: 1px solid var(--gold);
   color: var(--gold);
@@ -124,6 +145,15 @@ html, body, #root {
   font-size: 0.62rem;
   font-weight: 600;
 }
+.ts-resource {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.66rem;
+  color: var(--text2);
+}
+.ts-resource:first-of-type { margin-left: auto; }
+.ts-resource-icon { font-size: 0.78rem; line-height: 1; }
 .ts-info {
   flex: 1;
   min-width: 0;
