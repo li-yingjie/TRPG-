@@ -68,7 +68,7 @@ function TitleScreen({ onStart, onLoad, initialPanel = null }) {
     return (
       <div className="title-screen">
         <button className="back-topleft" onClick={() => setPanel(null)}>← 返回</button>
-        <div className="title-logo" style={{ fontSize: '1.6rem', marginBottom: 6 }}>命途冒险</div>
+        <div className="title-logo" style={{ fontSize: '1.6rem', marginBottom: 6 }}>遗忘诸界</div>
         <div className="title-sub" style={{ marginBottom: 40 }}>选择开始方式</div>
         <button className="preset-mode-btn" onClick={onStart}>
           <span className="preset-mode-icon">⚔️</span>
@@ -130,8 +130,8 @@ function TitleScreen({ onStart, onLoad, initialPanel = null }) {
   // ── 主标题页 ──
   return (
     <div className="title-screen">
-      <div className="title-logo">命途冒险</div>
-      <div className="title-sub">CALATIA · 文字 RPG</div>
+      <div className="title-logo">遗忘诸界</div>
+      <div className="title-sub">DND · 文本 RPG 冒险</div>
 
       {!autoSave.empty && (
         <button className="title-btn title-btn-continue" onClick={() => onLoad(autoSave.gs)}>
