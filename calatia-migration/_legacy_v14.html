@@ -1,0 +1,6175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>命途冒险 · 对话流原型</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg-dark: #2a2418;
+  --bg-mid:  #3a3122;
+  --paper:   #d8c8a8;
+  --paper2:  #c4b49a;
+  --paper3:  #b8a888;
+  --text:    #e8d8b0;
+  --text2:   #c0a878;
+  --text3:   #88785c;
+  --paper-text: #1e140a;
+  --paper-text2:#4a3828;
+  --paper-text3:#7a6858;
+  --gold:    #b8860b;
+  --danger:  #c0392b;
+  --success: #2e7d4f;
+  --border:  rgba(212,160,32,0.3);
+  --paper-border: rgba(30,20,10,0.15);
+}
+
+html, body, #root {
+  height: 100%; width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--bg-dark);
+  font-family: 'Noto Serif SC', Georgia, serif;
+  color: var(--text);
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { display: none; }
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top status bar ── */
+.top-status {
+  background: linear-gradient(180deg, #1a1610 0%, #2a2418 100%);
+  border-bottom: 1px solid rgba(212,160,32,0.3);
+  padding: 8px 10px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.ts-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ts-avatar {
+  width: 44px; height: 44px;
+  background: rgba(40,30,20,0.85);
+  border: 2px solid var(--gold);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  position: relative;
+}
+.ts-lv-badge {
+  position: absolute;
+  bottom: -4px; right: -4px;
+  background: var(--gold);
+  color: #1a1208;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid #1a1208;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.ts-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ts-hp-bar, .ts-exp-bar {
+  height: 5px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(212,160,32,0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ts-hp-fill { height: 100%; background: linear-gradient(90deg, #2e7d4f, #5aa060); transition: width 0.5s ease; }
+.ts-exp-bar { height: 3px; }
+.ts-exp-fill { height: 100%; background: linear-gradient(90deg, #b8860b, #f0d080); transition: width 0.5s ease; }
+
+.ts-day-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.65rem;
+  color: var(--text2);
+}
+.ts-day { color: var(--gold); font-weight: 600; }
+.ts-actions { display: inline-flex; gap: 2px; }
+.ts-action-pip { font-size: 0.5rem; }
+.ts-action-pip.on { color: var(--success); }
+.ts-action-pip.off { color: var(--text3); opacity: 0.4; }
+.ts-free-pts {
+  margin-left: auto;
+  background: rgba(212,160,32,0.2);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+.ts-info {
+  flex: 1;
+  min-width: 0;
+}
+.ts-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.ts-name {
+  font-size: 0.78rem;
+  color: var(--text);
+  font-weight: 600;
+}
+.ts-hp-text {
+  font-size: 0.62rem;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.ts-buttons { display: flex; gap: 4px; }
+.ts-btn {
+  background: rgba(212,160,32,0.1);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+
+/* 6 stats grid below */
+.ts-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 8px;
+  margin-top: 6px;
+}
+.ts-stat-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  color: var(--text2);
+}
+.ts-stat-cell-icon {
+  font-size: 0.78rem;
+}
+.ts-stat-cell-val {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Quest indicator on button */
+.ts-btn-badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  background: var(--gold);
+  color: #1a1610;
+  font-size: 0.6rem;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+
+.app-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ══════════════════════
+   MAP SCREEN
+══════════════════════ */
+.map-screen {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      #2a4a5a 0%, #2a4a5a 8%,
+      #4a5d3a 12%, #4a5d3a 100%);
+  overflow: hidden;
+}
+.map-screen.town {
+  background: linear-gradient(180deg, #5a4a35 0%, #4a3a25 100%);
+}
+
+.terrain-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+.map-title {
+  position: absolute;
+  top: 12px; left: 12px;
+  font-size: 0.72rem;
+  color: var(--text);
+  letter-spacing: 0.2em;
+  background: rgba(0,0,0,0.5);
+  padding: 4px 10px;
+  border-radius: 2px;
+  z-index: 5;
+  border: 1px solid rgba(212,160,32,0.3);
+}
+
+.map-back-btn {
+  position: absolute;
+  top: 50px; left: 12px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(212,160,32,0.3);
+  color: var(--text2);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  z-index: 5;
+}
+
+.compass {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 40px; height: 40px;
+  opacity: 0.7; pointer-events: none; z-index: 5;
+}
+
+.marker {
+  position: absolute;
+  width: 64px;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  transition: transform 0.15s;
+  z-index: 5;
+}
+.marker:active { transform: translate(-50%, -100%) scale(0.95); }
+
+.marker-icon {
+  width: 44px; height: 44px;
+  background: rgba(40,30,20,0.85);
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin: 0 auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  position: relative;
+}
+.marker.town .marker-icon { background: rgba(80,50,30,0.95); }
+.marker.wild .marker-icon { background: rgba(40,60,30,0.95); border-color: #5aa060; }
+.marker.dungeon .marker-icon { background: rgba(60,30,30,0.95); border-color: #c84030; }
+.marker.locked .marker-icon {
+  filter: grayscale(0.85);
+  opacity: 0.55;
+  border-color: var(--text3);
+  border-style: dashed;
+}
+.marker.locked .marker-label {
+  color: var(--text3);
+  opacity: 0.7;
+}
+.lock-overlay {
+  position: absolute;
+  bottom: -3px; right: -3px;
+  background: rgba(20,15,8,0.95);
+  color: var(--text2);
+  font-size: 0.55rem;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--text3);
+}
+
+/* Quest indicator */
+.quest-badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  background: var(--gold);
+  color: #1a1610;
+  font-size: 0.72rem;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  border: 1.5px solid #1a1610;
+}
+.quest-badge.green { background: var(--success); color: #fff; }
+
+.marker-label {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  font-weight: 500;
+  white-space: nowrap;
+  background: rgba(0,0,0,0.5);
+  padding: 1px 6px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+.marker.current .marker-icon {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 4px 12px rgba(255,255,255,0.4);
+  animation: youHere 2s ease-in-out infinite;
+}
+@keyframes youHere {
+  0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 4px 12px rgba(255,255,255,0.4); }
+  50%     { box-shadow: 0 0 0 6px rgba(255,255,255,0.15), 0 4px 16px rgba(255,255,255,0.6); }
+}
+
+.you-arrow {
+  position: absolute;
+  font-size: 1.2rem;
+  color: #fff;
+  text-shadow: 0 0 6px #000;
+  animation: bounce 1.5s ease-in-out infinite;
+  top: -22px; left: 50%; transform: translateX(-50%);
+  z-index: 6;
+}
+@keyframes bounce {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%     { transform: translateX(-50%) translateY(-4px); }
+}
+
+/* ══════════════════════
+   DIALOG SCREEN (FULL PAGE)
+══════════════════════ */
+.dialog-screen {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 200px 100px at 20% 30%, rgba(120,90,40,0.08), transparent),
+    radial-gradient(ellipse 150px 80px at 80% 60%, rgba(120,90,40,0.06), transparent),
+    var(--paper);
+  display: flex;
+  flex-direction: column;
+  animation: pageIn 0.3s ease;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--paper-border);
+  background: rgba(184,134,11,0.06);
+  flex-shrink: 0;
+}
+.dialog-back-btn {
+  background: rgba(30,20,10,0.08);
+  border: 1px solid rgba(30,20,10,0.2);
+  color: var(--paper-text2);
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.dialog-icon {
+  font-size: 1.4rem;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(30,20,10,0.06);
+  border-radius: 50%;
+  border: 1.5px solid rgba(30,20,10,0.3);
+  flex-shrink: 0;
+}
+.dialog-title-block { flex: 1; min-width: 0; }
+.dialog-title {
+  font-size: 0.95rem;
+  color: var(--paper-text);
+  font-weight: 600;
+}
+.dialog-sub {
+  font-size: 0.7rem;
+  color: var(--paper-text3);
+  margin-top: 1px;
+}
+
+/* Story text scroll area */
+.dialog-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 18px 12px;
+  scroll-behavior: smooth;
+}
+
+/* Each story paragraph */
+.story-para {
+  font-size: 0.92rem;
+  line-height: 2;
+  color: var(--paper-text2);
+  margin-bottom: 14px;
+  text-align: justify;
+  animation: fadeInUp 0.4s ease;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.story-para.npc-says {
+  background: rgba(184,134,11,0.08);
+  border-left: 3px solid var(--gold);
+  padding: 10px 14px;
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+  color: var(--paper-text);
+}
+.story-para.npc-says::before {
+  content: '— ';
+  color: var(--gold);
+  font-weight: 700;
+  font-style: normal;
+}
+
+.story-para.system {
+  font-size: 0.78rem;
+  color: var(--paper-text3);
+  text-align: center;
+  font-style: italic;
+  margin: 8px 0;
+}
+
+/* Result block */
+.story-result {
+  background: rgba(30,20,10,0.06);
+  border-left: 3px solid;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 0.88rem;
+  line-height: 1.85;
+  color: var(--paper-text2);
+  border-radius: 0 4px 4px 0;
+  animation: fadeInUp 0.4s ease;
+}
+.story-result.success { border-color: var(--success); background: rgba(46,125,79,0.08); }
+.story-result.fail    { border-color: var(--danger);  background: rgba(192,57,43,0.08); }
+
+.story-rewards {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+}
+.reward-tag {
+  font-size: 0.72rem;
+  background: rgba(0,0,0,0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: var(--paper-text);
+}
+
+/* Decorative divider between paragraphs / chapters */
+.story-divider {
+  text-align: center;
+  margin: 18px 0;
+  color: var(--paper-text3);
+  font-size: 0.85rem;
+  opacity: 0.5;
+  letter-spacing: 0.5em;
+}
+
+/* Choices area at bottom */
+.dialog-choices {
+  background: rgba(184,134,11,0.04);
+  border-top: 1px solid var(--paper-border);
+  padding: 10px 14px max(10px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+.choice-btn {
+  display: block;
+  width: 100%;
+  background: var(--paper2);
+  border: 1.5px solid rgba(30,20,10,0.3);
+  border-radius: 6px;
+  padding: 11px 14px;
+  margin-bottom: 6px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--paper-text);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.choice-btn:active:not(.disabled) { background: var(--paper3); }
+.choice-btn.disabled { opacity: 0.4; pointer-events: none; }
+.choice-btn.primary {
+  background: var(--paper-text);
+  color: var(--paper);
+  border-color: transparent;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  justify-content: center;
+}
+.choice-btn-text { flex: 1; }
+.choice-btn-meta {
+  font-size: 0.7rem;
+  color: var(--paper-text3);
+  white-space: nowrap;
+}
+
+/* ══════════════════════
+   DICE OVERLAY
+══════════════════════ */
+.dice-overlay {
+  position: fixed;
+  inset: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: rgba(8,5,2,0.92);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  animation: fadeIn 0.2s;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.dice-attr-label {
+  font-size: 0.78rem;
+  color: var(--text2);
+  letter-spacing: 0.3em;
+}
+.dice-rate-info {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(212,160,32,0.3);
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+.d20-dice {
+  width: 130px; height: 130px;
+  position: relative;
+  animation: diceFloat 2.5s ease-in-out infinite;
+}
+@keyframes diceFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-10px); }
+}
+
+.d20-shape {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #8b1a1a 0%, #6a1010 50%, #4a0808 100%);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: inset -8px -8px 24px rgba(0,0,0,0.5);
+}
+.d20-shape::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: linear-gradient(135deg, #a02020 0%, #8a1818 100%);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+}
+.d20-num {
+  position: relative;
+  z-index: 2;
+  font-size: 2.6rem;
+  font-weight: bold;
+  color: #f0d080;
+  text-shadow: 0 0 16px rgba(240,208,128,0.9);
+  font-family: Georgia, serif;
+}
+
+.d20-dice.rolling .d20-shape { animation: diceSpin 0.1s linear infinite; }
+@keyframes diceSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.05); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.dice-verdict {
+  font-size: 1.4rem;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  font-family: Georgia, serif;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  min-height: 2.2rem;
+}
+.dice-verdict.success { color: #5cdc80; }
+.dice-verdict.fail    { color: #ff5050; }
+.dice-verdict.crit    { color: #f0d020; animation: pulse 0.6s ease-out; }
+.dice-verdict.fumble  { color: #ff3030; animation: shake 0.5s ease-out; }
+
+@keyframes pulse {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60% { transform: translateX(-8px); }
+  40%,80% { transform: translateX(8px); }
+}
+
+.dice-cont-btn {
+  background: rgba(212,160,32,0.15);
+  border: 1px solid rgba(212,160,32,0.4);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 10px 32px;
+  cursor: pointer;
+  letter-spacing: 0.2em;
+  border-radius: 4px;
+}
+.dice-cont-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+/* ── Quest log overlay ── */
+.quest-log {
+  position: fixed;
+  inset: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: rgba(0,0,0,0.7);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ql-box {
+  width: 90%;
+  max-width: 400px;
+  background: var(--paper);
+  color: var(--paper-text);
+  border-radius: 8px;
+  padding: 16px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.ql-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+  letter-spacing: 0.1em;
+  color: var(--paper-text);
+}
+.ql-empty { text-align: center; color: var(--paper-text3); font-size: 0.85rem; padding: 20px 0; }
+.ql-item {
+  background: rgba(0,0,0,0.04);
+  border-left: 3px solid var(--gold);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 0 4px 4px 0;
+}
+.ql-item.done { border-left-color: var(--success); opacity: 0.6; }
+.ql-item-name { font-size: 0.88rem; color: var(--paper-text); font-weight: 500; }
+.ql-item-prog { font-size: 0.72rem; color: var(--paper-text3); margin-top: 2px; }
+.ql-close {
+  width: 100%;
+  margin-top: 8px;
+  background: var(--paper-text);
+  color: var(--paper);
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* ══════════════════════
+   FEEDBACK ENHANCEMENTS
+══════════════════════ */
+
+/* Typewriter text */
+.typewriter {
+  display: inline-block;
+}
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--paper-text2);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.7s steps(1) infinite;
+}
+@keyframes blink { 0%,50% {opacity:1} 51%,100% {opacity:0} }
+
+/* Tap-to-continue indicator */
+.tap-indicator {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--paper-text3);
+  letter-spacing: 0.2em;
+  padding: 8px 0;
+  cursor: pointer;
+  animation: pulse-tap 1.5s ease-in-out infinite;
+}
+@keyframes pulse-tap {
+  0%,100% { opacity: 0.5; }
+  50%     { opacity: 1; }
+}
+
+/* Reward tag emphasis */
+.reward-tag.big {
+  background: linear-gradient(135deg, #f0d080 0%, #d4a020 100%);
+  color: #1a1208;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(212,160,32,0.4);
+  animation: rewardPop 0.5s ease-out;
+}
+@keyframes rewardPop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Critical reward overlay - big item display */
+.item-showcase {
+  position: fixed;
+  inset: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: rgba(0,0,0,0.85);
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  animation: fadeIn 0.3s;
+  cursor: pointer;
+}
+.item-showcase-icon {
+  font-size: 6rem;
+  filter: drop-shadow(0 0 30px rgba(240,208,128,0.7));
+  animation: itemRotate 3s ease-in-out infinite;
+}
+@keyframes itemRotate {
+  0%,100% { transform: rotate(-5deg) scale(1); }
+  50%     { transform: rotate(5deg) scale(1.05); }
+}
+.item-showcase-label {
+  font-size: 0.78rem;
+  color: var(--gold);
+  letter-spacing: 0.4em;
+  text-shadow: 0 0 20px rgba(212,160,32,0.6);
+}
+.item-showcase-name {
+  font-size: 1.6rem;
+  color: #f0d080;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 30px rgba(240,208,128,0.8), 0 2px 8px rgba(0,0,0,0.8);
+}
+.item-showcase-desc {
+  font-size: 0.85rem;
+  color: var(--text2);
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.7;
+}
+.item-showcase-tap {
+  font-size: 0.7rem;
+  color: var(--text3);
+  letter-spacing: 0.3em;
+  margin-top: 14px;
+  animation: pulse-tap 1.5s ease-in-out infinite;
+}
+.item-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(240,208,128,0.15) 0%, transparent 60%);
+  animation: shine 3s ease-in-out infinite;
+}
+@keyframes shine {
+  0%,100% { opacity: 0.3; }
+  50%     { opacity: 0.6; }
+}
+
+/* Gold flash on big reward */
+.gold-flash {
+  position: fixed;
+  inset: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: radial-gradient(ellipse at center, rgba(240,208,128,0.4) 0%, transparent 70%);
+  z-index: 99;
+  pointer-events: none;
+  animation: goldFlash 0.8s ease-out forwards;
+}
+@keyframes goldFlash {
+  0%   { opacity: 0; transform: scale(0.8); }
+  30%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+/* Stat up indicator */
+.stat-up-toast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #5aa060 0%, #2e7d4f 100%);
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(90,160,96,0.5);
+  z-index: 200;
+  animation: statUp 2s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes statUp {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  20%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80%  { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+}
+
+/* HP/Gold delta number popup on top status */
+.delta-popup {
+  position: absolute;
+  font-size: 0.75rem;
+  font-weight: 700;
+  pointer-events: none;
+  animation: deltaUp 1.2s ease-out forwards;
+  z-index: 300;
+}
+.delta-popup.positive { color: #5aa060; }
+.delta-popup.negative { color: #c0392b; }
+@keyframes deltaUp {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-30px); }
+}
+
+/* ══════════════════════
+   CREATE SCREEN
+══════════════════════ */
+.create-screen {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top, rgba(80,60,40,0.4), transparent 60%),
+    var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.create-header {
+  background: rgba(0,0,0,0.4);
+  border-bottom: 1px solid rgba(212,160,32,0.3);
+  padding: 14px 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.create-title {
+  font-size: 1.05rem;
+  color: var(--gold);
+  letter-spacing: 0.3em;
+  font-weight: 600;
+}
+.create-subtitle {
+  font-size: 0.7rem;
+  color: var(--text3);
+  letter-spacing: 0.4em;
+  margin-top: 2px;
+}
+
+.create-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 20px;
+}
+
+.create-section {
+  margin-bottom: 18px;
+}
+.create-section h3 {
+  font-size: 0.72rem;
+  color: var(--text3);
+  letter-spacing: 0.25em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.create-section h3::before, .create-section h3::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(212,160,32,0.2);
+}
+
+/* Name input */
+.name-input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(212,160,32,0.3);
+  border-radius: 5px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+  text-align: center;
+}
+.name-input:focus { border-color: var(--gold); }
+
+/* Stat allocation */
+.pts-bar {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; color: var(--text2);
+  margin-bottom: 10px;
+}
+.pts-num {
+  color: var(--gold);
+  font-weight: 700;
+  margin: 0 6px;
+  font-size: 1rem;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.stat-row {
+  display: flex; align-items: center;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(212,160,32,0.2);
+  border-radius: 5px;
+  padding: 8px 10px;
+  gap: 8px;
+}
+.stat-row-icon { font-size: 0.95rem; }
+.stat-row-name { font-size: 0.78rem; color: var(--text2); flex: 1; }
+.stat-row-val  { font-size: 1rem; color: var(--gold); font-weight: 600; min-width: 1.5em; text-align: center; }
+.stat-btn {
+  background: rgba(212,160,32,0.15);
+  border: 1px solid rgba(212,160,32,0.3);
+  color: var(--text);
+  width: 22px; height: 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit;
+}
+.stat-btn:active { background: rgba(212,160,32,0.3); }
+.stat-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+/* ──── Face Builder UI ──── */
+.face-preview-area {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 16px 14px 12px;
+  background:
+    radial-gradient(ellipse 200px 100px at center, rgba(212,160,32,0.12), transparent 70%);
+}
+.face-preview-frame {
+  display: inline-block;
+  position: relative;
+  background: rgba(0,0,0,0.3);
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 0 24px rgba(212,160,32,0.25), inset 0 2px 8px rgba(0,0,0,0.5);
+}
+.face-preview-frame svg {
+  border-radius: 50%;
+  background: linear-gradient(180deg, #4a3e2c 0%, #2a2418 100%);
+}
+.dice-shuffle {
+  position: absolute;
+  bottom: 0; right: 0;
+  background: var(--gold);
+  border: 2px solid #1a1208;
+  color: #1a1208;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.dice-shuffle:active { transform: scale(0.92); }
+.face-name-input {
+  display: block;
+  width: 60%;
+  max-width: 220px;
+  margin: 14px auto 4px;
+  background: rgba(0,0,0,0.3);
+  border: none;
+  border-bottom: 1.5px solid rgba(212,160,32,0.4);
+  padding: 6px 10px 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+  text-align: center;
+}
+.face-name-input:focus { border-color: var(--gold); }
+
+/* Tabs */
+.create-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 14px;
+  margin-top: 8px;
+  border-bottom: 1px solid rgba(212,160,32,0.2);
+  flex-shrink: 0;
+}
+.create-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text3);
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 10px 8px;
+  cursor: pointer;
+  letter-spacing: 0.15em;
+  position: relative;
+}
+.create-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.tab-dot {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--danger);
+  font-size: 0.5rem;
+  vertical-align: super;
+}
+
+.create-tab-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+}
+
+/* Part cyclers */
+.part-cyclers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.part-cycler {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(212,160,32,0.15);
+  border-radius: 6px;
+  padding: 4px;
+}
+.cycler-arrow {
+  background: rgba(212,160,32,0.1);
+  border: 1px solid rgba(212,160,32,0.3);
+  color: var(--text2);
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.cycler-arrow:active { background: rgba(212,160,32,0.25); }
+.cycler-content {
+  flex: 1;
+  text-align: center;
+  padding: 0 8px;
+}
+.cycler-label {
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.2em;
+}
+.cycler-value {
+  font-size: 0.88rem;
+  color: var(--text);
+  font-weight: 500;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.color-swatch {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212,160,32,0.4);
+  flex-shrink: 0;
+}
+
+.trait-hint {
+  font-size: 0.75rem;
+  color: var(--text3);
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 0.1em;
+}
+.tab-content-stats, .tab-content-traits {
+  display: flex;
+  flex-direction: column;
+}
+.avatar-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.avatar-option {
+  background: rgba(0,0,0,0.25);
+  border: 1.5px solid rgba(212,160,32,0.15);
+  border-radius: 6px;
+  padding: 10px 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.avatar-option:active { transform: scale(0.95); }
+.avatar-option.selected {
+  border-color: var(--gold);
+  background: rgba(212,160,32,0.15);
+  box-shadow: 0 0 12px rgba(212,160,32,0.3);
+}
+.avatar-option-emoji { font-size: 1.8rem; }
+.avatar-option-name {
+  font-size: 0.65rem;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.avatar-option.selected .avatar-option-name { color: var(--gold); }
+
+/* Intro story screen */
+.intro-screen {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top, rgba(80,60,40,0.3), transparent 60%),
+    var(--paper);
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.5s ease;
+}
+.intro-header {
+  background: rgba(184,134,11,0.08);
+  border-bottom: 1px solid var(--paper-border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.intro-avatar {
+  width: 56px; height: 56px;
+  background: rgba(30,20,10,0.08);
+  border: 2px solid rgba(30,20,10,0.4);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+.intro-name {
+  font-size: 1rem;
+  color: var(--paper-text);
+  font-weight: 700;
+}
+.intro-trait {
+  font-size: 0.72rem;
+  color: var(--paper-text3);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+.intro-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 22px 12px;
+}
+.intro-chapter {
+  font-size: 0.78rem;
+  color: var(--paper-text3);
+  letter-spacing: 0.4em;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.intro-title {
+  font-size: 1.4rem;
+  color: var(--paper-text);
+  text-align: center;
+  margin-bottom: 24px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  position: relative;
+}
+.intro-title::after {
+  content: '';
+  display: block;
+  width: 50px;
+  height: 1px;
+  background: var(--gold);
+  margin: 8px auto 0;
+}
+.intro-text {
+  font-size: 0.92rem;
+  line-height: 2.1;
+  color: var(--paper-text2);
+  text-align: justify;
+  margin-bottom: 18px;
+}
+.intro-goal-box {
+  background: rgba(184,134,11,0.1);
+  border: 1px solid rgba(184,134,11,0.3);
+  border-radius: 6px;
+  padding: 14px;
+  margin-top: 20px;
+  text-align: center;
+}
+.intro-goal-label {
+  font-size: 0.7rem;
+  color: var(--paper-text3);
+  letter-spacing: 0.3em;
+  margin-bottom: 6px;
+}
+.intro-goal-name {
+  font-size: 1rem;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.intro-goal-desc {
+  font-size: 0.78rem;
+  color: var(--paper-text2);
+}
+.intro-btn-row {
+  background: rgba(184,134,11,0.04);
+  border-top: 1px solid var(--paper-border);
+  padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+.intro-btn {
+  width: 100%;
+  background: var(--paper-text);
+  color: var(--paper);
+  border: none;
+  border-radius: 5px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3em;
+}
+.trait-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.trait-card {
+  background: rgba(0,0,0,0.25);
+  border: 1.5px solid rgba(212,160,32,0.15);
+  border-radius: 5px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.trait-card:active { transform: scale(0.98); }
+.trait-card.selected {
+  border-color: var(--gold);
+  background: rgba(212,160,32,0.12);
+}
+.trait-card.disabled { opacity: 0.4; pointer-events: none; }
+.trait-name { font-size: 0.82rem; color: var(--text); font-weight: 500; }
+.trait-desc { font-size: 0.7rem; color: var(--text3); margin-top: 2px; line-height: 1.4; }
+
+/* Goal selection */
+.goal-list { display: flex; flex-direction: column; gap: 6px; }
+.goal-card {
+  background: rgba(0,0,0,0.25);
+  border: 1.5px solid rgba(212,160,32,0.15);
+  border-radius: 5px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.15s;
+}
+.goal-card:active { transform: scale(0.98); }
+.goal-card.selected {
+  border-color: var(--gold);
+  background: rgba(212,160,32,0.12);
+}
+.goal-icon { font-size: 1.6rem; flex-shrink: 0; }
+.goal-info { flex: 1; }
+.goal-name { font-size: 0.92rem; color: var(--gold); font-weight: 600; }
+.goal-desc { font-size: 0.72rem; color: var(--text3); margin-top: 2px; }
+
+/* Start button */
+.start-btn {
+  width: calc(100% - 28px);
+  margin: 0 14px 14px;
+  background: linear-gradient(135deg, #d4a020 0%, #b8860b 100%);
+  color: #1a1208;
+  border: none;
+  border-radius: 6px;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(212,160,32,0.4);
+}
+.start-btn:disabled {
+  opacity: 0.35; pointer-events: none;
+  background: var(--bg-mid);
+  color: var(--text3);
+  box-shadow: none;
+}
+
+/* Step indicator */
+.create-step-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.7rem;
+  color: var(--text3);
+}
+.step-dot {
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(212,160,32,0.15);
+  letter-spacing: 0.05em;
+}
+.step-dot.on {
+  color: var(--text2);
+  border-color: rgba(212,160,32,0.35);
+}
+.step-dot.current {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: rgba(212,160,32,0.12);
+}
+.step-dash {
+  width: 18px;
+  height: 1px;
+  background: rgba(212,160,32,0.3);
+}
+
+/* Footer for create screen (handles 1 or 2 buttons) */
+.create-footer {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 14px;
+  flex-shrink: 0;
+}
+.create-footer .start-btn {
+  flex: 1;
+  margin: 0;
+  width: auto;
+}
+.back-step-btn {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(212,160,32,0.3);
+  color: var(--text2);
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 14px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+.back-step-btn:active { background: rgba(0,0,0,0.5); }
+
+/* Big goal cards on step 2 */
+.goal-card.big {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+.goal-card.big .goal-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 14px;
+}
+.goal-card.big .goal-icon.big {
+  font-size: 2.6rem;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: rgba(212,160,32,0.08);
+  border: 2px solid rgba(212,160,32,0.3);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.goal-card.big.selected .goal-icon.big {
+  border-color: var(--gold);
+  background: rgba(212,160,32,0.2);
+  box-shadow: 0 0 16px rgba(212,160,32,0.3);
+}
+.goal-card.big .goal-card-title {
+  flex: 1;
+  min-width: 0;
+}
+.goal-card.big .goal-name {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+.goal-card.big .goal-desc {
+  font-size: 0.78rem;
+  color: var(--text3);
+  line-height: 1.5;
+}
+.goal-quote {
+  background: rgba(0,0,0,0.2);
+  border-top: 1px solid rgba(212,160,32,0.15);
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  color: var(--text3);
+  font-style: italic;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+.goal-card.big.selected .goal-quote {
+  color: var(--text2);
+  background: rgba(212,160,32,0.06);
+}
+
+/* ══════════════════════
+   ENDING SCREEN
+══════════════════════ */
+.ending-screen {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.6s ease;
+}
+.ending-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 30px rgba(212,160,32,0.5));
+  animation: endingPop 0.8s ease-out;
+}
+@keyframes endingPop {
+  0%   { opacity: 0; transform: scale(0.3); }
+  60%  { transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.ending-subtitle {
+  font-size: 0.72rem;
+  color: var(--text3);
+  letter-spacing: 0.6em;
+  margin-bottom: 8px;
+}
+.ending-title {
+  font-size: 2rem;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  margin-bottom: 28px;
+  text-shadow: 0 0 30px rgba(212,160,32,0.5);
+}
+.ending-story {
+  max-width: 320px;
+  font-size: 0.92rem;
+  line-height: 2;
+  color: var(--text);
+  margin-bottom: 28px;
+  text-align: justify;
+}
+.ending-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 28px;
+}
+.ending-stat {
+  background: rgba(212,160,32,0.08);
+  border: 1px solid rgba(212,160,32,0.2);
+  border-radius: 6px;
+  padding: 10px;
+}
+.ending-stat-val {
+  font-size: 1.2rem;
+  color: var(--gold);
+  font-weight: 700;
+}
+.ending-stat-key {
+  font-size: 0.65rem;
+  color: var(--text3);
+  margin-top: 2px;
+  letter-spacing: 0.1em;
+}
+.ending-btn {
+  background: rgba(212,160,32,0.15);
+  border: 1.5px solid var(--gold);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 0.92rem;
+  padding: 12px 32px;
+  border-radius: 5px;
+  cursor: pointer;
+  letter-spacing: 0.2em;
+  margin: 4px;
+}
+.ending-btn:active { background: rgba(212,160,32,0.3); }
+.ending-btn.primary {
+  background: linear-gradient(135deg, #d4a020 0%, #b8860b 100%);
+  color: #1a1208;
+  border-color: transparent;
+  font-weight: 700;
+}
+
+/* Title screen */
+.title-screen {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, rgba(80,60,40,0.4), transparent 70%),
+    linear-gradient(180deg, #1a1208 0%, #0f0a04 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+.title-logo {
+  font-size: 2.4rem;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-shadow: 0 0 30px rgba(212,160,32,0.6);
+  font-family: Georgia, serif;
+}
+.title-sub {
+  font-size: 0.72rem;
+  color: var(--text3);
+  letter-spacing: 0.6em;
+  margin-bottom: 50px;
+}
+.title-btn {
+  background: transparent;
+  border: 2px solid var(--gold);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 12px 40px;
+  border-radius: 5px;
+  cursor: pointer;
+  letter-spacing: 0.3em;
+  margin: 6px;
+  min-width: 180px;
+}
+.title-btn:active { background: rgba(212,160,32,0.2); }
+
+/* ══════════════════════
+   BOTTOM NAVIGATION
+══════════════════════ */
+.bottom-nav {
+  position: relative;
+  background: linear-gradient(180deg, #1a1610 0%, #0f0c08 100%);
+  border-top: 1px solid rgba(212,160,32,0.3);
+  display: flex;
+  flex-shrink: 0;
+  padding: 6px 4px max(6px, env(safe-area-inset-bottom));
+  z-index: 8;
+}
+.nav-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  transition: color 0.15s;
+}
+.nav-tab:active { transform: scale(0.95); }
+.nav-tab.active { color: var(--gold); }
+.nav-tab-icon { font-size: 1.4rem; line-height: 1; }
+.nav-tab-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+}
+.nav-tab-badge {
+  position: absolute;
+  top: 2px; right: calc(50% - 18px);
+  background: var(--danger);
+  color: white;
+  font-size: 0.55rem;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  border: 1.5px solid #1a1610;
+}
+
+/* Drawer panel */
+.drawer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 70;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s;
+}
+.drawer-panel {
+  width: 100%;
+  background: var(--paper);
+  color: var(--paper-text);
+  border-radius: 12px 12px 0 0;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  animation: drawerSlide 0.25s ease;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.6);
+}
+@keyframes drawerSlide {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.drawer-handle {
+  width: 40px; height: 4px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 2px;
+  margin: 8px auto 0;
+  flex-shrink: 0;
+}
+.drawer-header {
+  padding: 8px 16px 10px;
+  border-bottom: 1px solid var(--paper-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.drawer-title {
+  flex: 1;
+  font-size: 1rem;
+  color: var(--paper-text);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--paper-text3);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+}
+
+/* Drawer content shared styles */
+.drawer-section { margin-bottom: 16px; }
+.drawer-section-title {
+  font-size: 0.72rem;
+  color: var(--paper-text3);
+  letter-spacing: 0.25em;
+  margin-bottom: 8px;
+}
+.drawer-empty {
+  text-align: center;
+  color: var(--paper-text3);
+  font-size: 0.85rem;
+  padding: 30px 10px;
+  font-style: italic;
+}
+
+/* Character panel content */
+.char-overview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--paper-border);
+}
+.char-overview-face {
+  width: 70px; height: 70px;
+  background: rgba(0,0,0,0.08);
+  border: 2px solid rgba(30,20,10,0.4);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.char-overview-info { flex: 1; min-width: 0; }
+.char-overview-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--paper-text);
+}
+.char-overview-meta {
+  font-size: 0.78rem;
+  color: var(--paper-text3);
+  margin-top: 3px;
+}
+.char-overview-bars { margin-top: 8px; }
+.char-bar {
+  height: 6px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.char-bar-fill { height: 100%; transition: width 0.5s ease; }
+.char-bar-fill.hp { background: linear-gradient(90deg, #2e7d4f, #5aa060); }
+.char-bar-fill.exp { background: linear-gradient(90deg, #b8860b, #f0d080); }
+.char-bar-text { font-size: 0.65rem; color: var(--paper-text3); }
+
+.char-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.char-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.04);
+  padding: 8px 10px;
+  border-radius: 4px;
+}
+.char-stat-item-icon { font-size: 1rem; }
+.char-stat-item-name { flex: 1; font-size: 0.78rem; color: var(--paper-text2); }
+.char-stat-item-val { font-size: 0.95rem; font-weight: 700; color: var(--paper-text); }
+
+.char-traits-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.char-trait-row {
+  background: rgba(184,134,11,0.08);
+  border-left: 3px solid var(--gold);
+  padding: 8px 12px;
+  border-radius: 0 4px 4px 0;
+}
+.char-trait-row-name { font-size: 0.85rem; font-weight: 600; color: var(--paper-text); }
+.char-trait-row-desc { font-size: 0.7rem; color: var(--paper-text3); margin-top: 2px; }
+
+/* Inventory grid */
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.inv-cell {
+  aspect-ratio: 1;
+  background: rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  position: relative;
+}
+.inv-cell.has-item {
+  background: rgba(184,134,11,0.1);
+  border-color: rgba(184,134,11,0.3);
+}
+.inv-cell.quest {
+  background: rgba(184,134,11,0.18);
+  border: 1.5px solid var(--gold);
+}
+.inv-cell-name {
+  position: absolute;
+  bottom: 2px; left: 2px; right: 2px;
+  font-size: 0.55rem;
+  color: var(--paper-text3);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Quest items section */
+.quest-items-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+/* Quest log content */
+.quest-list-drawer {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.quest-row-drawer {
+  background: rgba(0,0,0,0.04);
+  border-left: 3px solid var(--gold);
+  padding: 10px 12px;
+  border-radius: 0 4px 4px 0;
+}
+.quest-row-drawer.done {
+  border-left-color: var(--success);
+  opacity: 0.65;
+}
+.quest-row-drawer-name { font-size: 0.92rem; font-weight: 600; color: var(--paper-text); }
+.quest-row-drawer-prog {
+  font-size: 0.75rem; color: var(--paper-text3);
+  margin-top: 4px;
+}
+.quest-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  padding: 1px 0;
+}
+.quest-step.done { color: var(--paper-text3); text-decoration: line-through; }
+.quest-step.current { color: var(--gold); font-weight: 600; }
+.quest-step-marker { font-size: 0.6rem; }
+
+/* Logbook content */
+.log-entry {
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: var(--paper-text2);
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(0,0,0,0.1);
+}
+.log-entry-time {
+  font-size: 0.65rem;
+  color: var(--paper-text3);
+  margin-right: 6px;
+}
+
+/* ══════════════════════
+   COMBAT SCREEN
+══════════════════════ */
+.combat-screen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #1a1208 0%, #0f0a04 100%);
+  display: flex;
+  flex-direction: column;
+  animation: pageIn 0.3s ease;
+  z-index: 50;
+}
+
+.combat-topbar {
+  background: rgba(0,0,0,0.5);
+  border-bottom: 1px solid rgba(212,160,32,0.2);
+  padding: 8px 12px 6px;
+  flex-shrink: 0;
+}
+.combat-fighters {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.fighter-info { }
+.fighter-info.enemy { text-align: right; }
+.fighter-name { font-size: 0.82rem; color: var(--text); font-weight: 500; }
+.fighter-atk { font-size: 0.65rem; color: var(--text3); margin-top: 1px; }
+.fighter-hp-bar {
+  height: 7px; border-radius: 3px; overflow: hidden;
+  background: rgba(0,0,0,0.5);
+  margin-top: 4px; border: 1px solid rgba(212,160,32,0.2);
+}
+.fighter-hp-fill {
+  height: 100%; border-radius: 3px; transition: width 0.5s ease;
+}
+.fighter-hp-fill.player { background: linear-gradient(90deg, #2e7d4f, #4aaa70); }
+.fighter-hp-fill.enemy  { background: linear-gradient(90deg, #c0392b, #e05555); }
+.fighter-hp-text { font-size: 0.62rem; color: var(--text3); margin-top: 2px; }
+.fighter-info.enemy .fighter-hp-text { text-align: right; }
+
+.win-chance { text-align: center; flex-shrink: 0; }
+.win-chance-label { font-size: 0.6rem; color: var(--text3); letter-spacing: 0.1em; }
+.win-chance-val { font-size: 1rem; font-weight: 700; color: var(--success); line-height: 1.2; }
+.win-chance-val.low { color: var(--danger); }
+.win-chance-val.mid { color: var(--gold); }
+
+.enemy-tier {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.62rem; color: var(--danger);
+  border: 1px solid rgba(192,57,43,0.4);
+  padding: 1px 6px; border-radius: 3px; margin-bottom: 4px;
+}
+
+/* Scene */
+.combat-scene {
+  position: relative;
+  background: linear-gradient(180deg, #2a1a0a 0%, #3a2818 30%, #5a4030 60%, #3a2810 100%);
+  flex-shrink: 0;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(212,160,32,0.2);
+  height: 220px;
+}
+.combat-scene::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 30% at 50% 70%, rgba(0,0,0,0.5), transparent);
+}
+.combat-scene-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px 32px 32px;
+  height: 100%;
+  position: relative;
+}
+
+.pixel-char {
+  display: flex; flex-direction: column; align-items: center;
+  position: relative;
+  z-index: 2;
+}
+.pixel-char-sprite {
+  font-size: 4rem;
+  filter: drop-shadow(2px 6px 10px rgba(0,0,0,0.6));
+  transition: transform 0.15s;
+}
+.pixel-char-sprite.attacking {
+  animation: attack-anim 0.4s ease-out;
+}
+.pixel-char-sprite.attacking-enemy {
+  animation: attack-anim-enemy 0.4s ease-out;
+}
+.pixel-char-sprite.hurt {
+  animation: hurt-anim 0.3s ease-out;
+}
+@keyframes attack-anim {
+  0%   { transform: translateX(0) }
+  40%  { transform: translateX(40px) scale(1.1) }
+  100% { transform: translateX(0) }
+}
+@keyframes attack-anim-enemy {
+  0%   { transform: translateX(0) }
+  40%  { transform: translateX(-40px) scale(1.1) }
+  100% { transform: translateX(0) }
+}
+@keyframes hurt-anim {
+  0%,100% { transform: translateX(0); filter: drop-shadow(2px 6px 10px rgba(0,0,0,0.6)); }
+  25%,75% { transform: translateX(-8px); filter: drop-shadow(2px 6px 10px rgba(255,0,0,0.7)) brightness(1.7); }
+  50%     { transform: translateX(8px); }
+}
+.pixel-char-shadow {
+  width: 50px; height: 8px;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent);
+  margin-top: -2px;
+}
+
+/* Damage float */
+.dmg-float {
+  position: absolute;
+  font-size: 1.4rem;
+  font-weight: 700;
+  pointer-events: none;
+  animation: float-up 1.2s ease-out forwards;
+  z-index: 10;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  font-family: Georgia, serif;
+}
+.dmg-float.player-dmg { color: #ffa040; left: 60%; top: 30%; }
+.dmg-float.enemy-dmg  { color: #ff5050; right: 60%; top: 50%; }
+.dmg-float.miss { color: var(--text3); font-size: 1rem; }
+@keyframes float-up {
+  0%   { opacity: 1; transform: translateY(0) scale(0.5); }
+  20%  { transform: translateY(-10px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-60px) scale(1); }
+}
+
+/* Combat log */
+.combat-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: var(--text2);
+  background: rgba(0,0,0,0.3);
+}
+.log-line { padding: 1px 0; }
+.log-line.hit  { color: #5dca80; }
+.log-line.miss { color: var(--text3); }
+.log-line.hurt { color: #ff7060; }
+.log-line.crit { color: var(--gold); font-weight: 600; }
+.log-line.sys  { color: var(--text2); font-style: italic; }
+
+/* Combat actions */
+.combat-actions {
+  background: rgba(0,0,0,0.6);
+  border-top: 1px solid rgba(212,160,32,0.2);
+  padding: 10px 12px max(10px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+.combat-dice-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.inline-dice {
+  width: 60px; height: 60px;
+  background: #8b1a1a;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: inset -4px -4px 10px rgba(0,0,0,0.4);
+}
+.inline-dice::before {
+  content: '';
+  position: absolute; inset: 3px;
+  background: #a02020;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+}
+.inline-dice-num {
+  position: relative; z-index: 1;
+  font-size: 1.2rem; font-weight: bold;
+  color: #f0d080;
+  font-family: Georgia, serif;
+}
+.inline-dice.rolling { animation: dice-spin 0.1s linear infinite; }
+@keyframes dice-spin {
+  0%{transform:rotate(0)} 100%{transform:rotate(360deg)}
+}
+
+.combat-action-btns {
+  display: flex; flex-direction: column; gap: 6px; flex: 1;
+}
+.combat-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(212,160,32,0.1);
+  border: 1px solid rgba(212,160,32,0.3);
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s;
+  min-height: 38px;
+}
+.combat-btn:active { background: rgba(212,160,32,0.2); }
+.combat-btn.primary {
+  background: linear-gradient(135deg, #d4a020 0%, #b8860b 100%);
+  color: #1a1208;
+  border-color: transparent;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  justify-content: center;
+}
+.combat-btn.primary:active { opacity: 0.85; }
+.combat-btn.danger { color: #ff7060; border-color: rgba(192,57,43,0.4); }
+.combat-btn:disabled { opacity: 0.35; pointer-events: none; }
+.combat-btn-icon { font-size: 1rem; }
+.combat-btn-sub { font-size: 0.65rem; color: var(--text3); margin-left: auto; }
+.combat-btn.primary .combat-btn-sub { color: rgba(26,18,8,0.6); }
+
+/* Combat skills */
+.combat-skills {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.skill-btn {
+  flex: 1;
+  min-width: 60px;
+  background: rgba(184,134,11,0.1);
+  border: 1px solid rgba(184,134,11,0.3);
+  border-radius: 4px;
+  padding: 6px 4px;
+  font-family: inherit;
+  font-size: 0.68rem;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  transition: all 0.12s;
+}
+.skill-btn:active:not(.disabled) { background: rgba(184,134,11,0.2); }
+.skill-btn.disabled { opacity: 0.4; pointer-events: none; }
+.skill-btn-icon { font-size: 1.1rem; }
+.skill-btn-name { font-size: 0.62rem; }
+.skill-btn-cd {
+  position: absolute;
+  top: 2px; right: 4px;
+  background: var(--danger);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.fighter-buffs {
+  display: flex;
+  gap: 3px;
+  margin-top: 3px;
+}
+.buff-chip {
+  font-size: 0.85rem;
+  background: rgba(212,160,32,0.2);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+/* Combat result overlay */
+.combat-result {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  animation: fadeIn 0.4s;
+}
+.combat-result-icon {
+  font-size: 5rem;
+  filter: drop-shadow(0 0 30px rgba(212,160,32,0.6));
+}
+.combat-result-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.combat-result-title.victory { color: #f0d080; }
+.combat-result-title.defeat  { color: #ff5050; }
+.combat-result-rewards {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  justify-content: center;
+  max-width: 320px;
+}
+.combat-result-btn {
+  background: linear-gradient(135deg, #d4a020 0%, #b8860b 100%);
+  color: #1a1208;
+  border: none;
+  padding: 10px 32px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.15em;
+  margin-top: 8px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,15,8,0.95);
+  color: var(--gold);
+  padding: 8px 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(212,160,32,0.4);
+  font-size: 0.82rem;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toast" id="toast"></div>
+
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+// ════════════════════════════════
+// HELPERS
+// ════════════════════════════════
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+function calcRate(stat=5, lck=5) {
+  return Math.min(95, Math.max(5, 50 + (stat-5)*8 + (lck-5)*2));
+}
+
+// Spend 1 daily action; returns false if no actions left (dialog should refuse)
+function consumeAction(setGS, gs) {
+  if (gs.actionsLeft <= 0) {
+    toast('🌙 今天已经精疲力尽了，需要休息');
+    return false;
+  }
+  setGS(g => ({ ...g, actionsLeft: g.actionsLeft - 1 }));
+  return true;
+}
+
+// Sleep: advance to next day, restore actions, partial HP
+function sleepNight(setGS) {
+  setGS(g => ({
+    ...g,
+    day: g.day + 1,
+    actionsLeft: g.actionsPerDay,
+    healUsedToday: false,
+    hp: Math.min(g.maxHp, g.hp + Math.round(g.maxHp * 0.4)),
+  }));
+  toast('🌙 你休息了一晚，恢复了体力');
+}
+
+// Apply EXP gain & handle level-up; returns array of unlocked skills
+function gainExp(gs, amount) {
+  const ng = { ...gs };
+  ng.exp = (ng.exp || 0) + amount;
+  const unlocked = [];
+  while (ng.exp >= ng.expMax) {
+    ng.exp -= ng.expMax;
+    ng.level += 1;
+    ng.expMax = Math.round(ng.expMax * 1.4);
+    ng.freeStatPoints = (ng.freeStatPoints || 0) + 2;
+    ng.maxHp += 5;
+    ng.hp += 5;
+    // Auto-unlock skills available at this level
+    Object.values(SKILLS).forEach(s => {
+      if (s.unlockLv === ng.level && !ng.skills.includes(s.id)) {
+        ng.skills = [...ng.skills, s.id];
+        unlocked.push(s);
+      }
+    });
+  }
+  return { state: ng, unlocked };
+}
+
+// Quest item descriptions for showcase
+const ITEM_INFO = {
+  silver_herb: { icon:'🌿', name:'银光草', desc:'罕见草药，散发淡淡银辉。是炼金术士梦寐以求的材料。' },
+  soldier_amulet: { icon:'🪬', name:'老兵的护身符', desc:'锈迹斑斑的银坠子，刻着「艾莉」二字。承载着一段失落的爱情。' },
+  iron_hammer: { icon:'🔨', name:'祖传铁锤', desc:'铁匠家族传承四十年的工具，沉甸甸的，握感很好。' },
+  rare_fish: { icon:'🐟', name:'银鳞鱼', desc:'传说中的稀有鱼类，鳞片在阳光下泛起银光。' },
+  lost_letter: { icon:'✉️', name:'一封陌生人的信', desc:'信封上写着「水手汤姆 · 黄昏港客栈」，似乎是寄给一位漂泊在外的家人的。' },
+  '基础魔法导引': { icon:'📕', name:'基础魔法导引', desc:'入门级魔法书，可学习基础法术。' },
+  '老兵的短匕': { icon:'🗡️', name:'老兵的短匕', desc:'跟随老兵三十年的武器。STR +2。' },
+  '骷髅骨': { icon:'🦴', name:'骷髅骨', desc:'墓穴里残留的骨骸，可作炼金材料。' },
+  '古护身符': { icon:'🔮', name:'古护身符', desc:'刻有古老符文的护身符。' },
+  '锻造护甲': { icon:'🛡️', name:'锻造护甲', desc:'铁匠亲手打造的精良护甲。VIT +2。' },
+  '龙鳞': { icon:'🐲', name:'龙鳞', desc:'远古巨龙的鳞片，坚硬无比。屠龙者的勋章。' },
+  '幸运护符': { icon:'🍀', name:'幸运护符', desc:'据说能带来好运。LCK +2。' },
+  '精钢剑': { icon:'⚔️', name:'精钢剑', desc:'铁匠用回收的祖传锤打造的好剑。STR +1。' },
+  '船长的弯刀': { icon:'🗡️', name:'船长的弯刀', desc:'弧度优美的水手弯刀。STR +1。' },
+  '深渊禁书': { icon:'📖', name:'深渊禁书', desc:'记载着不可名状的远古知识。INT +1。' },
+  '海盗旗': { icon:'🏴‍☠️', name:'海盗旗', desc:'海盗头领的旗帜，是讨伐功劳的证据。' },
+};
+
+// Typewriter component - reveals text char-by-char
+function Typewriter({ text, speed = 30, onDone }) {
+  const [shown, setShown] = React.useState('');
+  const [done, setDone] = React.useState(false);
+  const idxRef = React.useRef(0);
+  const timerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    setShown('');
+    setDone(false);
+    idxRef.current = 0;
+    const tick = () => {
+      idxRef.current += 1;
+      if (idxRef.current > text.length) {
+        setDone(true);
+        if (onDone) onDone();
+        return;
+      }
+      setShown(text.slice(0, idxRef.current));
+      timerRef.current = setTimeout(tick, speed);
+    };
+    timerRef.current = setTimeout(tick, speed);
+    return () => clearTimeout(timerRef.current);
+  }, [text]);
+
+  // Click to skip
+  const skipToEnd = () => {
+    clearTimeout(timerRef.current);
+    setShown(text);
+    setDone(true);
+    if (onDone) onDone();
+  };
+
+  return (
+    <span className="typewriter" onClick={skipToEnd}>
+      {shown}
+      {!done && <span className="typewriter-cursor"/>}
+    </span>
+  );
+}
+
+// ════════════════════════════════
+// GAME DATA (could be moved to /data/*.json in future)
+// All static content lives here. Code logic does not depend on shape changes.
+// ════════════════════════════════
+window.GAMEDATA = {};
+
+window.GAMEDATA.QUESTS = {
+  q_wizard: {
+    name: '巫师的请求',
+    steps: [
+      { id:'accept', desc:'答应帮巫师寻找银光草' },
+      { id:'collect_herb', desc:'在野外采到银光草' },
+      { id:'return_wizard', desc:'回到古塔交付银光草' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  q_old_soldier: {
+    name: '老兵的回忆',
+    steps: [
+      { id:'accept', desc:'听说独眼老兵的故事' },
+      { id:'find_amulet', desc:'在十字墓园找到他的护身符' },
+      { id:'return', desc:'把护身符带回酒馆' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  q_smith: {
+    name: '铁匠的失物',
+    steps: [
+      { id:'accept', desc:'帮铁匠找回他的祖传铁锤' },
+      { id:'find_hammer', desc:'在矿坑中寻找铁锤' },
+      { id:'return', desc:'把铁锤带回铁匠铺' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  q_shrine: {
+    name: '神坛的低语',
+    steps: [
+      { id:'investigate', desc:'调查神坛的秘密' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  // 新增 5 条
+  q_lighthouse: {
+    name: '消失的灯塔守',
+    steps: [
+      { id:'accept', desc:'查清灯塔为何熄灭' },
+      { id:'investigate', desc:'前往废弃灯塔调查' },
+      { id:'return', desc:'把发现告诉港口船长' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  q_pirate: {
+    name: '海盗的赏金',
+    steps: [
+      { id:'accept', desc:'消灭海岸悬崖的海盗' },
+      { id:'kill_pirate', desc:'击败海盗' },
+      { id:'return', desc:'回港领赏' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  q_fish: {
+    name: '鱼市奇货',
+    steps: [
+      { id:'accept', desc:'帮鱼贩找回稀有鱼货' },
+      { id:'find_fish', desc:'在悬崖找到鱼货' },
+      { id:'return', desc:'回鱼市交差' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  q_cult: {
+    name: '黑潮邪教',
+    steps: [
+      { id:'rumor', desc:'听说港口下有可疑集会' },
+      { id:'infiltrate', desc:'潜入地下集会' },
+      { id:'kill_priest', desc:'击败邪教祭司' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+  q_letter: {
+    name: '一封未送出的信',
+    steps: [
+      { id:'find', desc:'你在野外捡到一封信' },
+      { id:'deliver', desc:'把信送到客栈的收信人' },
+      { id:'done', desc:'已完成' },
+    ],
+  },
+};
+
+// ════════════════════════════════
+// LOCATIONS / NPCS
+// ════════════════════════════════
+window.GAMEDATA.WORLD_NODES = [
+  // 起点 - 默认解锁
+  { id:'dawn_town', mapId:'dawn_town', kind:'compound', icon:'🏘️', name:'黎明镇',
+    type:'town', pos:{x:32,y:60}, defaultUnlocked:true },
+  // 镇外可见地点 - 默认解锁
+  { id:'wild_herb', kind:'dialog', icon:'🌿', name:'采药岩区',
+    type:'wild', pos:{x:60,y:42}, dialogId:'wild_herb_zone', defaultUnlocked:true },
+  { id:'wild_explore', kind:'dialog', icon:'🌲', name:'迷雾森林',
+    type:'wild', pos:{x:50,y:30}, dialogId:'forest_explore', defaultUnlocked:true },
+  { id:'crypt', mapId:'crypt', kind:'compound', icon:'🪦', name:'十字墓园',
+    type:'dungeon', pos:{x:25,y:85}, defaultUnlocked:true },
+  // 需通过 NPC 对话解锁
+  { id:'wizard_tower', kind:'dialog', icon:'🗼', name:'古塔', type:'dungeon',
+    pos:{x:78,y:25}, dialogId:'wizard_tower_door',
+    unlockHint:'酒馆里似乎有人提起过东边的塔...' },
+  { id:'mine', kind:'dialog', icon:'⛏️', name:'废弃矿坑', type:'wild',
+    pos:{x:18,y:35}, dialogId:'mine_entrance',
+    unlockHint:'据说铁匠去过这里...' },
+  { id:'shrine', kind:'dialog', icon:'🗿', name:'神秘神坛', type:'wild',
+    pos:{x:70,y:75}, dialogId:'shrine_meet',
+    unlockHint:'杂货商似乎知道点什么...' },
+  { id:'dragon_lair', kind:'dialog', icon:'🐉', name:'巨龙之巢', type:'dungeon',
+    pos:{x:88,y:45}, dialogId:'dragon_lair',
+    unlockHint:'酒馆中独眼老兵的传说里似乎有线索...' },
+  // 黄昏港及其周边
+  { id:'dusk_harbor', mapId:'dusk_harbor', kind:'compound', icon:'⚓', name:'黄昏港',
+    type:'town', pos:{x:55,y:88},
+    unlockHint:'镇外公告栏或许有南方港口的消息...' },
+  { id:'cliffs', kind:'dialog', icon:'🌊', name:'海岸悬崖', type:'wild',
+    pos:{x:72,y:55}, dialogId:'cliffs_meet',
+    unlockHint:'港口的船长应该知道...' },
+  { id:'lighthouse', kind:'dialog', icon:'🗼', name:'废弃灯塔', type:'dungeon',
+    pos:{x:42,y:78}, dialogId:'lighthouse_meet',
+    unlockHint:'港口的船长应该知道...' },
+];
+
+window.GAMEDATA.HARBOR_NODES = [
+  { id:'harbor_dock', kind:'dialog', icon:'⛵', name:'码头', type:'building',
+    pos:{x:50,y:30}, dialogId:'harbor_dock', defaultUnlocked:true },
+  { id:'harbor_fishmonger', kind:'dialog', icon:'🐟', name:'鱼市', type:'building',
+    pos:{x:25,y:55}, dialogId:'harbor_fishmonger', defaultUnlocked:true },
+  { id:'harbor_inn', kind:'dialog', icon:'🍻', name:'船员客栈', type:'building',
+    pos:{x:75,y:55}, dialogId:'harbor_inn', defaultUnlocked:true },
+  { id:'harbor_cult', kind:'dialog', icon:'🕯️', name:'地下集会', type:'building',
+    pos:{x:50,y:80}, dialogId:'harbor_cult_door',
+    unlockHint:'船员客栈中或有传闻...' },
+];
+
+window.GAMEDATA.TOWN_NODES = [
+  { id:'tavern', kind:'dialog', icon:'🍺', name:'酒馆', type:'building',
+    pos:{x:30,y:35}, dialogId:'tavern_enter', defaultUnlocked:true },
+  { id:'church', kind:'dialog', icon:'⛪', name:'教堂', type:'building',
+    pos:{x:65,y:30}, dialogId:'church_enter', defaultUnlocked:true },
+  { id:'bulletin', kind:'dialog', icon:'📋', name:'公告栏', type:'building',
+    pos:{x:50,y:55}, dialogId:'bulletin_enter', defaultUnlocked:true },
+  { id:'home', kind:'dialog', icon:'🛏️', name:'自宅', type:'building',
+    pos:{x:75,y:65}, dialogId:'home_enter', defaultUnlocked:true },
+  { id:'smith', kind:'dialog', icon:'⚒️', name:'铁匠铺', type:'building',
+    pos:{x:18,y:62}, dialogId:'smith_enter', defaultUnlocked:true },
+  { id:'merchant', kind:'dialog', icon:'🏪', name:'杂货商', type:'building',
+    pos:{x:48,y:18}, dialogId:'merchant_enter', defaultUnlocked:true },
+];
+
+window.GAMEDATA.CRYPT_NODES = [
+  { id:'crypt_entrance', kind:'dialog', icon:'🕯️', name:'墓园入口', type:'wild',
+    pos:{x:30,y:50}, dialogId:'crypt_entrance', defaultUnlocked:true },
+  { id:'crypt_inner', kind:'dialog', icon:'🪦', name:'墓穴深处', type:'dungeon',
+    pos:{x:65,y:60}, dialogId:'crypt_inner', defaultUnlocked:true },
+];
+
+window.GAMEDATA.MAPS = {
+  world:        { title:'幽影大陆 · 西境', bg:'world', nodes:window.GAMEDATA.WORLD_NODES, parent:null },
+  dawn_town:    { title:'黎明镇',         bg:'town',  nodes:window.GAMEDATA.TOWN_NODES,  parent:'world' },
+  crypt:        { title:'十字墓园',       bg:'town',  nodes:window.GAMEDATA.CRYPT_NODES, parent:'world' },
+  dusk_harbor:  { title:'黄昏港',         bg:'harbor', nodes:window.GAMEDATA.HARBOR_NODES, parent:'world' },
+};
+
+window.GAMEDATA.ENEMIES = {
+  goblin:   { name:'哥布林',   emoji:'👺', tier:1, hp:30,  atk:6,  exp:18, gold:10 },
+  bandit:   { name:'山贼',     emoji:'🗡️', tier:2, hp:45,  atk:10, exp:22, gold:18 },
+  skeleton: { name:'骷髅战士', emoji:'💀', tier:2, hp:40,  atk:9,  exp:25, gold:15 },
+  pirate:   { name:'海盗',     emoji:'🏴‍☠️', tier:3, hp:60, atk:13, exp:35, gold:30 },
+  ghoul:    { name:'食尸鬼',   emoji:'🧟', tier:3, hp:55,  atk:12, exp:30, gold:20 },
+  sea_serpent:{ name:'海蛇', emoji:'🐍', tier:4, hp:75, atk:16, exp:45, gold:35 },
+  wraith:   { name:'幽影骑士', emoji:'👻', tier:4, hp:80,  atk:18, exp:50, gold:40 },
+  cult_priest:{ name:'邪教祭司', emoji:'🧙‍♂️', tier:4, hp:70, atk:20, exp:60, gold:45 },
+  dragon:   { name:'远古巨龙', emoji:'🐉', tier:5, hp:150, atk:30, exp:100,gold:80 },
+};
+
+// ════════════════════════════════
+// FACE BUILDER (SVG-based avatar composition)
+// ════════════════════════════════
+window.GAMEDATA.FACE_PARTS = {
+  faceShape: {
+    label: '脸型',
+    options: [
+      { id:'round',  name:'圆脸' },
+      { id:'long',   name:'长脸' },
+      { id:'square', name:'方脸' },
+    ],
+  },
+  skinTone: {
+    label: '肤色',
+    options: [
+      { id:'pale',   name:'冷白', color:'#f5dfc3' },
+      { id:'fair',   name:'白皙', color:'#eccba0' },
+      { id:'light',  name:'浅褐', color:'#dba87b' },
+      { id:'tan',    name:'小麦', color:'#bf8854' },
+      { id:'dark',   name:'深棕', color:'#8a5a35' },
+      { id:'olive',  name:'橄榄', color:'#a89070' },
+    ],
+  },
+  hairStyle: {
+    label: '发型',
+    options: [
+      { id:'short',     name:'短发' },
+      { id:'long',      name:'长发' },
+      { id:'bald',      name:'光头' },
+      { id:'curly',     name:'卷发' },
+      { id:'topknot',   name:'发髻' },
+      { id:'mohawk',    name:'莫西干' },
+      { id:'sidecut',   name:'侧分' },
+      { id:'ponytail',  name:'马尾' },
+    ],
+  },
+  hairColor: {
+    label: '发色',
+    options: [
+      { id:'black',  name:'乌黑', color:'#1a1410' },
+      { id:'brown',  name:'棕色', color:'#5a3a1f' },
+      { id:'auburn', name:'红棕', color:'#8a4520' },
+      { id:'blonde', name:'金色', color:'#d4a838' },
+      { id:'silver', name:'银白', color:'#c8c8c8' },
+      { id:'red',    name:'火红', color:'#a02020' },
+      { id:'blue',   name:'湛蓝', color:'#3a7090' },
+      { id:'purple', name:'紫罗兰', color:'#6a3a8a' },
+    ],
+  },
+  accessory: {
+    label: '配件',
+    options: [
+      { id:'none',     name:'无' },
+      { id:'eyepatch', name:'眼罩' },
+      { id:'glasses',  name:'眼镜' },
+      { id:'bandana',  name:'头巾' },
+      { id:'hood',     name:'兜帽' },
+      { id:'helmet',   name:'头盔' },
+    ],
+  },
+  expression: {
+    label: '神态',
+    options: [
+      { id:'calm',   name:'沉静' },
+      { id:'smile',  name:'微笑' },
+      { id:'fierce', name:'凶狠' },
+      { id:'tired',  name:'疲惫' },
+    ],
+  },
+};
+
+// ────────────────────────────────────
+// SVG renderer for composed face
+// ────────────────────────────────────
+function renderFacePath(part, value, allParts) {
+  // Returns JSX for a face part
+  // We build each part as a function returning <path>/<rect>/etc.
+}
+
+// Composed face renderer
+function FaceAvatar({ face, size = 120 }) {
+  const f = face || {};
+  const skinColor = (window.GAMEDATA.FACE_PARTS.skinTone.options.find(o=>o.id===f.skinTone) || {}).color || '#dba87b';
+  const hairColor = (window.GAMEDATA.FACE_PARTS.hairColor.options.find(o=>o.id===f.hairColor) || {}).color || '#5a3a1f';
+  const faceShape = f.faceShape || 'round';
+  const hairStyle = f.hairStyle || 'short';
+  const accessory = f.accessory || 'none';
+  const expression = f.expression || 'calm';
+
+  // Face shape paths (cy=50, head)
+  const faceShapes = {
+    round:  <ellipse cx="50" cy="52" rx="26" ry="30" fill={skinColor} stroke="#1a1208" strokeWidth="1" />,
+    long:   <ellipse cx="50" cy="55" rx="22" ry="34" fill={skinColor} stroke="#1a1208" strokeWidth="1" />,
+    square: <path d="M 26 40 Q 26 30 38 28 L 62 28 Q 74 30 74 40 L 74 70 Q 74 84 50 86 Q 26 84 26 70 Z"
+              fill={skinColor} stroke="#1a1208" strokeWidth="1" />,
+  };
+
+  // Ears
+  const ears = (
+    <>
+      <ellipse cx="24" cy="52" rx="4" ry="6" fill={skinColor} stroke="#1a1208" strokeWidth="0.8" />
+      <ellipse cx="76" cy="52" rx="4" ry="6" fill={skinColor} stroke="#1a1208" strokeWidth="0.8" />
+    </>
+  );
+
+  // Hair (drawn over face)
+  const hair = {
+    short: (
+      <path d="M 24 36 Q 28 22 50 22 Q 72 22 76 36 Q 76 42 70 42 L 30 42 Q 24 42 24 36 Z"
+        fill={hairColor} />
+    ),
+    long: (
+      <>
+        <path d="M 22 36 Q 26 18 50 18 Q 74 18 78 36 L 78 78 Q 70 76 70 70 L 70 42 L 30 42 L 30 70 Q 30 76 22 78 Z"
+          fill={hairColor} />
+      </>
+    ),
+    bald: null,
+    curly: (
+      <g fill={hairColor}>
+        <circle cx="32" cy="30" r="8"/>
+        <circle cx="42" cy="24" r="9"/>
+        <circle cx="55" cy="22" r="9"/>
+        <circle cx="67" cy="26" r="8"/>
+        <circle cx="74" cy="34" r="7"/>
+        <circle cx="28" cy="38" r="7"/>
+      </g>
+    ),
+    topknot: (
+      <>
+        <ellipse cx="50" cy="14" rx="9" ry="7" fill={hairColor} />
+        <rect x="46" y="20" width="8" height="8" fill={hairColor} />
+        <path d="M 28 38 Q 32 28 50 28 Q 68 28 72 38 Q 72 42 68 42 L 32 42 Q 28 42 28 38 Z" fill={hairColor} />
+      </>
+    ),
+    mohawk: (
+      <path d="M 44 14 Q 40 28 40 42 L 60 42 Q 60 28 56 14 Q 50 10 44 14 Z" fill={hairColor} />
+    ),
+    sidecut: (
+      <path d="M 24 36 Q 28 22 50 22 Q 72 22 76 36 L 76 42 L 60 42 Q 56 32 50 30 Q 36 38 30 42 L 24 42 Z"
+        fill={hairColor} />
+    ),
+    ponytail: (
+      <>
+        <path d="M 26 36 Q 30 22 50 22 Q 70 22 74 36 L 74 42 L 26 42 Z" fill={hairColor} />
+        <ellipse cx="74" cy="50" rx="5" ry="14" fill={hairColor} transform="rotate(20 74 50)" />
+      </>
+    ),
+  };
+
+  // Eyes
+  const eyeBase = (
+    <>
+      <circle cx="40" cy="52" r="3" fill="white" stroke="#1a1208" strokeWidth="0.8" />
+      <circle cx="60" cy="52" r="3" fill="white" stroke="#1a1208" strokeWidth="0.8" />
+      <circle cx="40" cy="52" r="1.6" fill="#1a1208" />
+      <circle cx="60" cy="52" r="1.6" fill="#1a1208" />
+    </>
+  );
+
+  const fierceEyes = (
+    <>
+      <path d="M 36 50 L 44 53" stroke="#1a1208" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <path d="M 56 53 L 64 50" stroke="#1a1208" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    </>
+  );
+  const tiredEyes = (
+    <>
+      <path d="M 37 53 Q 40 51 44 53" stroke="#1a1208" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <path d="M 56 53 Q 60 51 63 53" stroke="#1a1208" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+    </>
+  );
+
+  const eyes = {
+    calm: eyeBase,
+    smile: eyeBase,
+    fierce: fierceEyes,
+    tired: tiredEyes,
+  };
+
+  // Mouth
+  const mouths = {
+    calm: <line x1="44" y1="68" x2="56" y2="68" stroke="#1a1208" strokeWidth="1.4" strokeLinecap="round" />,
+    smile: <path d="M 42 67 Q 50 73 58 67" stroke="#1a1208" strokeWidth="1.4" fill="none" strokeLinecap="round" />,
+    fierce: <path d="M 42 70 L 58 70 L 56 67 L 44 67 Z" fill="#1a1208" />,
+    tired: <line x1="44" y1="70" x2="56" y2="70" stroke="#1a1208" strokeWidth="1.2" strokeLinecap="round" />,
+  };
+
+  // Eyebrows
+  const eyebrows = {
+    calm: (
+      <>
+        <path d="M 36 46 L 44 45" stroke="#1a1208" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M 56 45 L 64 46" stroke="#1a1208" strokeWidth="1.5" strokeLinecap="round" />
+      </>
+    ),
+    smile: (
+      <>
+        <path d="M 36 47 Q 40 45 44 46" stroke="#1a1208" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        <path d="M 56 46 Q 60 45 64 47" stroke="#1a1208" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      </>
+    ),
+    fierce: (
+      <>
+        <path d="M 36 48 L 44 44" stroke="#1a1208" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M 56 44 L 64 48" stroke="#1a1208" strokeWidth="1.8" strokeLinecap="round" />
+      </>
+    ),
+    tired: (
+      <>
+        <path d="M 36 45 L 44 47" stroke="#1a1208" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M 56 47 L 64 45" stroke="#1a1208" strokeWidth="1.4" strokeLinecap="round" />
+      </>
+    ),
+  };
+
+  // Accessory
+  const accessories = {
+    none: null,
+    eyepatch: (
+      <>
+        <ellipse cx="40" cy="52" rx="6" ry="4.5" fill="#1a1208" />
+        <line x1="34" y1="50" x2="22" y2="46" stroke="#1a1208" strokeWidth="1" />
+        <line x1="46" y1="51" x2="68" y2="46" stroke="#1a1208" strokeWidth="1" />
+      </>
+    ),
+    glasses: (
+      <>
+        <circle cx="40" cy="52" r="6" fill="none" stroke="#3a2818" strokeWidth="1.4" />
+        <circle cx="60" cy="52" r="6" fill="none" stroke="#3a2818" strokeWidth="1.4" />
+        <line x1="46" y1="52" x2="54" y2="52" stroke="#3a2818" strokeWidth="1.4" />
+      </>
+    ),
+    bandana: (
+      <>
+        <path d="M 24 36 L 76 36 L 78 42 L 22 42 Z" fill="#a02020" />
+        <path d="M 78 36 L 88 32 L 86 42 L 78 42 Z" fill="#7a1818" />
+        <circle cx="32" cy="39" r="1" fill="#1a1208" />
+        <circle cx="50" cy="39" r="1" fill="#1a1208" />
+        <circle cx="68" cy="39" r="1" fill="#1a1208" />
+      </>
+    ),
+    hood: (
+      <path d="M 12 70 Q 12 28 50 22 Q 88 28 88 70 L 88 90 L 12 90 Z"
+        fill="#3a2818" stroke="#1a1208" strokeWidth="1" />
+    ),
+    helmet: (
+      <>
+        <path d="M 22 50 Q 22 20 50 20 Q 78 20 78 50 L 78 44 L 22 44 Z"
+          fill="#7a7060" stroke="#1a1208" strokeWidth="1" />
+        <rect x="46" y="20" width="8" height="14" fill="#5a5040" />
+      </>
+    ),
+  };
+
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size} style={{display:'block'}}>
+      {/* Hood goes behind everything if active */}
+      {accessory === 'hood' && accessories.hood}
+      {ears}
+      {faceShapes[faceShape] || faceShapes.round}
+      {/* Hair (skip if helmet/hood/bandana fully covers) */}
+      {accessory !== 'helmet' && accessory !== 'hood' && (hair[hairStyle] || hair.short)}
+      {/* Eyebrows + Eyes + Mouth */}
+      {accessory !== 'helmet' && accessory !== 'eyepatch' && eyebrows[expression]}
+      {accessory !== 'helmet' && (accessory === 'eyepatch' ? (
+        <>
+          {/* Right eye visible only */}
+          <circle cx="60" cy="52" r="3" fill="white" stroke="#1a1208" strokeWidth="0.8" />
+          <circle cx="60" cy="52" r="1.6" fill="#1a1208" />
+        </>
+      ) : eyes[expression])}
+      {accessory !== 'helmet' && mouths[expression]}
+      {/* Accessory front layer */}
+      {accessory !== 'hood' && accessory !== 'helmet' && accessories[accessory]}
+      {accessory === 'helmet' && accessories.helmet}
+    </svg>
+  );
+}
+
+// ════════════════════════════════
+// CHARACTER CREATION DATA
+// ════════════════════════════════
+window.GAMEDATA.TRAITS = [
+  { id:'noble',    name:'贵族出身', desc:'初始金币×3，CHA+2',
+    intro:'你出生在一个落魄贵族家庭。父亲早逝，留下的只有几枚祖传金币和一座漏雨的宅子。但你不甘心成为最后一代——你要重振家族的荣光。',
+    apply: gs => { gs.gold *= 3; gs.stats.CHA += 2; } },
+  { id:'wanderer', name:'浪人',     desc:'初始无金币，AGI+3，STR+2',
+    intro:'你是一个无家可归的浪人。曾经也有过家，有过亲人，但那些都已成往事。你身无分文，但凭借多年漂泊练就的身手，足以应对一切。',
+    apply: gs => { gs.gold = 0; gs.stats.AGI += 3; gs.stats.STR += 2; } },
+  { id:'mage',     name:'魔法天赋', desc:'INT判定+15%，STR-10%',
+    intro:'从小你就能感应到他人无法察觉的能量流动。村里的老巫师告诉你，你拥有罕见的魔法天赋。但代价是——你的身体太弱，挥不动重剑。',
+    apply: gs => { gs.intBonus = 15; gs.strPenalty = 10; } },
+  { id:'lucky',    name:'幸运儿',   desc:'LCK+3',
+    intro:'人们说你是"被女神亲吻过的孩子"。从小到大，那些险象环生的时刻你总能化险为夷。也许这一次，运气会再次站在你这边。',
+    apply: gs => { gs.stats.LCK += 3; } },
+  { id:'merchant', name:'商贾血脉', desc:'初始金币+30，CHA+1',
+    intro:'你的父亲是镇上最精明的商人。从小耳濡目染，你对金钱有着天生的敏感。这一次出门冒险，他给了你一笔启动资金。',
+    apply: gs => { gs.gold += 30; gs.stats.CHA += 1; } },
+  { id:'iron',     name:'铁血战士', desc:'HP上限+15，VIT+1',
+    intro:'你曾在边境军团服役多年。沙场上的伤痕让你的肉体远比常人坚韧。如今退伍归来，你决定开始一段新的人生。',
+    apply: gs => { gs.hpBonus = 15; gs.stats.VIT += 1; } },
+  { id:'scholar',  name:'博学之士', desc:'INT+2，初始INT技能',
+    intro:'你在学院度过了十年时光，研读过无数古籍。但纸上得来终觉浅——你想亲自验证那些只在书中读到过的传奇。',
+    apply: gs => { gs.stats.INT += 2; } },
+  { id:'lonely',   name:'孤独者',   desc:'CHA-2，但所有判定+5%',
+    intro:'你不擅长与人打交道，但独行多年，你早已学会了如何在这个世界生存。也许，你并不需要任何人的认可。',
+    apply: gs => { gs.stats.CHA -= 2; gs.allBonus = 5; } },
+];
+
+window.GAMEDATA.GOALS = [
+  { id:'glory',    icon:'👑', name:'荣耀之路',
+    desc:'声望达到 100，成为传奇冒险者',
+    check: gs => gs.fame >= 100 },
+  { id:'wealth',   icon:'💰', name:'财富积累',
+    desc:'积累 500 金币，衣锦还乡',
+    check: gs => gs.gold >= 500 },
+  { id:'dragon',   icon:'🐉', name:'屠龙者',
+    desc:'击败远古巨龙',
+    check: gs => gs.flags?.includes('dragon_slain') },
+];
+
+// ════════════════════════════════
+// SKILLS (combat-active abilities)
+// ════════════════════════════════
+window.GAMEDATA.SKILLS = {
+  power_strike: {
+    id:'power_strike', name:'强力一击', icon:'⚔️',
+    desc:'对敌人造成 2x 伤害', cooldown:3,
+    unlockLv: 2,
+    type:'combat',
+  },
+  heal: {
+    id:'heal', name:'治疗术', icon:'💚',
+    desc:'恢复 30% HP', cooldown:4,
+    unlockLv: 3,
+    type:'combat',
+  },
+  flee_master: {
+    id:'flee_master', name:'瞬身遁走', icon:'💨',
+    desc:'必定逃脱，不掉 HP', cooldown:5,
+    unlockLv: 2,
+    type:'combat',
+  },
+  battle_cry: {
+    id:'battle_cry', name:'战吼', icon:'🔥',
+    desc:'下次攻击必中且暴击', cooldown:5,
+    unlockLv: 4,
+    type:'combat',
+  },
+  parry: {
+    id:'parry', name:'格挡反击', icon:'🛡️',
+    desc:'本回合免伤并反弹一半', cooldown:4,
+    unlockLv: 3,
+    type:'combat',
+  },
+  meditate: {
+    id:'meditate', name:'冥想集神', icon:'✨',
+    desc:'恢复全部 HP，但跳过 3 回合', cooldown:8,
+    unlockLv: 5,
+    type:'combat',
+  },
+};
+
+window.GAMEDATA.ENDINGS = [
+  { id:'death',
+    icon:'💀', title:'英雄长眠', subtitle:'A SAD END',
+    bg:'#1a0a0a',
+    story:'你倒在了异乡的土地上。没有人知道你的名字，但你短暂的冒险，也许某天会成为酒馆中一段模糊的故事。',
+    check: gs => gs.hp <= 0 },
+  { id:'glory',
+    icon:'👑', title:'传奇冒险者', subtitle:'GLORY ENDING',
+    bg:'#1a1500',
+    story:'你的名字响彻大陆每一个角落。王侯将相以认识你为荣，吟游诗人将你的事迹编成史诗。你终于站上了那个只属于传说的位置。',
+    check: gs => gs.fame >= 100 },
+  { id:'wealth',
+    icon:'💰', title:'富甲一方', subtitle:'WEALTH ENDING',
+    bg:'#0a1500',
+    story:'你带着满满的财富回到故乡，在镇上最繁华的街道买下了宅邸。冒险的日子结束了，崭新的人生才刚刚开始。',
+    check: gs => gs.gold >= 500 },
+  { id:'dragon',
+    icon:'🐲', title:'屠龙者', subtitle:'DRAGON SLAYER',
+    bg:'#150815',
+    story:'巨龙的尸骸已成为传说。你坐在山巅，俯视着脚下的大陆。从今天起，再无人敢向你挑战。',
+    check: gs => gs.flags?.includes('dragon_slain') },
+];
+
+// ════════════════════════════════
+// DIALOG SCRIPTS
+// Each dialog is a "scene" containing paragraphs + choices.
+// State of the world (questFlags, questItems) determines the variant shown.
+// ════════════════════════════════
+//
+// dialog format:
+// {
+//   icon, title, subtitle,
+//   variants: [
+//     { when: gs => ..., paragraphs: [...], choices: [...] },
+//     ...
+//   ]
+// }
+//
+// paragraphs: array of { type:'text'|'npc'|'system', text:string }
+// choices: array of {
+//   text, requires?, cost?, stat?, success?:{...effects...}, fail?:{...},
+//   successText?, failText?, result?:{...}, msg?:string,
+//   goto?: dialogId (跳转到下个场景),
+//   back?: true (返回上层地图),
+// }
+//
+// Effects format: { gold, hp, exp, fame, items[], questItems[], flags[],
+//                   removeItems[], questUpdate:[questId,stepId], stats }
+
+window.GAMEDATA.DIALOGS = {
+
+  // ─── Tavern (multi-state) ───
+  tavern_enter: {
+    icon: '🍺', title: '酒馆',
+    variants: [
+      // Variant 1: never visited
+      {
+        when: gs => !gs.flags.includes('met_oldman'),
+        paragraphs: [
+          { type:'text', text:'你推开酒馆厚重的木门，扑面而来的是酒香与喧闹。火炉的橙色光晕舔舐着每一张木桌，几名酒客在吆喝着掷骰子。' },
+          { type:'text', text:'你环顾四周，注意到吧台后面的胖老板正在擦杯子，而靠墙的角落里，一个独眼的老兵孤零零地坐着，面前的酒已经空了大半。' },
+        ],
+        choices: [
+          { text:'走向独眼老兵', goto:'tavern_oldman_first' },
+          { text:'去吧台和老板搭话', goto:'tavern_keeper' },
+          { text:'离开酒馆', back:true },
+        ],
+      },
+      // Variant 2: accepted quest, herb not collected
+      {
+        when: gs => gs.activeQuests?.q_wizard === 'collect_herb',
+        paragraphs: [
+          { type:'text', text:'你再次走入酒馆。火炉依然温暖，但你心中惦记着别的事。' },
+          { type:'npc', text:'胖老板看到你便招手："听说你接了任务？银光草那东西，得去东边的岩区找。当心点。"' },
+        ],
+        choices: [
+          { text:'继续探索酒馆', goto:'tavern_oldman_first' },
+          { text:'离开', back:true },
+        ],
+      },
+      // Default: revisit
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'酒馆一如既往的热闹。火炉劈啪作响，麦酒的香气和谈笑声让人放松。' },
+        ],
+        choices: [
+          { text:'与独眼老兵交谈', goto:'tavern_oldman_first' },
+          { text:'与老板搭话', goto:'tavern_keeper' },
+          { text:'喝一杯（10g）', cost:{gold:10}, result:{hp:8}, msg:'温热的麦酒让你感到放松。', stayHere:true },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  tavern_oldman_first: {
+    icon: '🍺', title: '酒馆 · 独眼老兵', subtitle: '酒馆角落',
+    variants: [
+      // Already given amulet
+      {
+        when: gs => gs.activeQuests?.q_old_soldier === 'return' && gs.questItems.includes('soldier_amulet'),
+        paragraphs: [
+          { type:'text', text:'你坐到老兵旁边，把那枚锈迹斑斑的护身符放在桌上。' },
+          { type:'npc', text:'老兵的独眼瞬间湿润了。他用粗糙的手紧紧握住护身符，沉默了很久。' },
+          { type:'npc', text:'"...谢谢你，年轻人。这是我妻子留给我的最后一样东西。我以为它永远埋在那里了。"' },
+          { type:'text', text:'他从怀里掏出一个鼓鼓的钱袋推给你，又从腰间解下一把短匕。' },
+          { type:'npc', text:'"这把刀跟了我三十年，现在该传给你了。STR+2。"' },
+        ],
+        choices: [
+          { text:'接受谢礼，告别',
+            result:{ gold:80, fame:15, items:['老兵的短匕'], stats:{STR:2}, removeItems:['soldier_amulet'], questUpdate:['q_old_soldier','done'], flags:['oldman_thanked'] },
+            msg:'你收下了老兵的礼物。',
+            backOnContinue:true,
+          },
+        ],
+      },
+      // First meeting: introduce
+      {
+        when: gs => !gs.flags.includes('met_oldman'),
+        paragraphs: [
+          { type:'text', text:'你在老兵对面坐下。他抬起头，那只独眼审视着你，眼神既警惕又疲惫。' },
+          { type:'npc', text:'"年轻人，请我喝一杯吧。我有一个请求。"' },
+          { type:'text', text:'老兵的声音沙哑而低沉，像是很久没和人好好说过话了。他并不直接说出请求，而是在等你的回应。' },
+        ],
+        choices: [
+          { text:'请他喝一杯（-10g）', cost:{gold:10}, goto:'tavern_oldman_story', effect:{flags:['met_oldman']} },
+          { text:'婉拒，转身离开', back:true },
+        ],
+      },
+      // Already met
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'老兵看到你，点了点头，但没多说什么。他的眼神中带着期盼。' },
+          { type:'npc', text:'"...找到我的护身符了吗？"' },
+        ],
+        choices: [
+          { text:'还没有', back:true },
+          { text:'再听一次他的故事', goto:'tavern_oldman_story' },
+        ],
+      },
+    ],
+  },
+
+  tavern_oldman_story: {
+    icon: '🍺', title: '酒馆 · 老兵的故事',
+    variants: [
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你叫老板上了一壶最便宜的麦酒。老兵谢过你，开始讲起他的过去。' },
+          { type:'npc', text:'"三十年前，我和妻子住在镇北。后来瘟疫席卷小镇，她没能挺过去。我把她葬在了十字墓园。"' },
+          { type:'npc', text:'"她临走前把一枚护身符交给我。说是要保佑我。可后来我酗酒、混乱、把它弄丢了——丢在了那座该死的墓园里。"' },
+          { type:'npc', text:'"我老了，腿脚不灵了。要是有一天，能再见到那枚护身符..."' },
+          { type:'npc', text:'"...对了，我年轻的时候还见过远古巨龙。东北山脉深处的洞穴里。那是真正的传说。"' },
+          { type:'text', text:'老兵看向你，眼神带着请求。' },
+        ],
+        choices: [
+          { text:'答应帮他寻找',
+            result:{ flags:['met_oldman'], questUpdate:['q_old_soldier','find_amulet'], unlock:['dragon_lair'] },
+            msg:'你接下了【老兵的回忆】任务。',
+            goto:'tavern_oldman_after_accept' },
+          { text:'婉拒，无能为力', result:{ flags:['met_oldman'], unlock:['dragon_lair'] }, back:true },
+        ],
+      },
+    ],
+  },
+
+  tavern_oldman_after_accept: {
+    icon: '🍺', title: '酒馆 · 老兵的故事',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'npc', text:'"谢谢你...护身符是个银色的小坠子，刻着她的名字，艾莉。"' },
+        { type:'npc', text:'"如果...如果你能帮我把它带回来，我会把我所有的积蓄交给你。"' },
+        { type:'system', text:'（任务已添加：在十字墓园寻找老兵的护身符。）' },
+      ],
+      choices: [
+        { text:'告辞', back:true },
+      ],
+    }],
+  },
+
+  tavern_keeper: {
+    icon: '🍺', title: '酒馆 · 胖老板',
+    variants: [
+      {
+        when: gs => !gs.flags.includes('heard_wizard'),
+        paragraphs: [
+          { type:'text', text:'你走到吧台前。胖老板抬起头，咧嘴一笑，露出缺了的门牙。' },
+          { type:'npc', text:'"来啦冒险者。新来的吧？最近镇上有点闷。东边古塔里那个老巫师，听说在到处找帮手——他那边的活儿酬劳听说不薄。"' },
+          { type:'npc', text:'"不过那老头脾气古怪，去之前最好做点准备。"' },
+        ],
+        choices: [
+          { text:'多问一些', result:{ flags:['heard_wizard'] }, goto:'tavern_keeper_more' },
+          { text:'告辞', result:{ flags:['heard_wizard'] }, back:true },
+        ],
+      },
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'胖老板看到你便点点头。' },
+          { type:'npc', text:'"老朋友啊。今天有什么好故事吗？"' },
+        ],
+        choices: [
+          { text:'打听镇外消息', cost:{gold:5}, result:{exp:5}, msg:'你听到了一些零星的传闻。', stayHere:true },
+          { text:'告辞', back:true },
+        ],
+      },
+    ],
+  },
+
+  tavern_keeper_more: {
+    icon: '🍺', title: '酒馆 · 胖老板',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'npc', text:'"那塔在东北方向，沿着大路一直走就是。塔门一般是关着的，你得敲门。"' },
+        { type:'npc', text:'"老巫师叫提奥多。哎呀，去看看就是了，运气好的话能学点本事。"' },
+      ],
+      choices: [{
+        text:'告辞',
+        result: { unlock: ['wizard_tower'] },
+        msg:'',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  // ─── Wizard Tower ───
+  wizard_tower_door: {
+    icon: '🗼', title: '古塔',
+    variants: [
+      // Already given herb, get reward
+      {
+        when: gs => gs.activeQuests?.q_wizard === 'return_wizard' && gs.questItems.includes('silver_herb'),
+        paragraphs: [
+          { type:'text', text:'你再次站在古塔门前，敲响了门。门吱呀一声开了，老巫师提奥多正等着你。' },
+          { type:'text', text:'你把银光草从包里取出，递给他。' },
+          { type:'npc', text:'"啊！你做到了！太好了，太好了！"' },
+          { type:'text', text:'巫师如获至宝，捧着银光草几乎要落泪。他转身走入塔内，从一个木箱中取出一本封面发亮的书递给你。' },
+          { type:'npc', text:'"这是基础魔法导引。如约定，我教你魔法的入门。INT +3，并赠你 100 金币。"' },
+        ],
+        choices: [{
+          text:'接受奖励',
+          result:{ gold:100, exp:30, fame:10, items:['基础魔法导引'], stats:{INT:3}, removeItems:['silver_herb'], questUpdate:['q_wizard','done'] },
+          msg:'你完成了【巫师的请求】。',
+          backOnContinue:true,
+        }],
+      },
+      // Quest accepted, no herb yet
+      {
+        when: gs => gs.activeQuests?.q_wizard === 'collect_herb',
+        paragraphs: [
+          { type:'text', text:'巫师从塔上探出头："还没找到？银光草只长在岩石区的缝隙里，那里能采到。"' },
+        ],
+        choices: [{ text:'回去再找', back:true }],
+      },
+      // First visit
+      {
+        when: gs => !gs.flags.includes('heard_wizard'),
+        paragraphs: [
+          { type:'text', text:'高耸的古塔孤独地矗立在荒野中。塔门紧闭，似乎许久未开。' },
+        ],
+        choices: [
+          { text:'敲门', stat:'CHA',
+            successText:'门吱呀一声打开，一个白胡子老人探出头："谁啊？哦，年轻人。进来吧。"',
+            failText:'你敲了半天，没有任何回应。塔内死寂一片。',
+            success:{ flags:['heard_wizard'] },
+            fail:{},
+            successGoto:'wizard_first_meet',
+          },
+          { text:'离开', back:true },
+        ],
+      },
+      // Heard about him from tavern
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你按胖老板的指引来到古塔前，深吸一口气，敲了敲门。' },
+          { type:'text', text:'门内传来脚步声，一会儿门开了。一位白胡子老人探出头来，挑剔地打量着你。' },
+        ],
+        choices: [
+          { text:'自我介绍，表明来意', goto:'wizard_first_meet' },
+          { text:'告辞', back:true },
+        ],
+      },
+    ],
+  },
+
+  wizard_first_meet: {
+    icon: '🗼', title: '古塔 · 提奥多',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'老巫师邀你进塔。塔内堆满了书籍和奇异的器皿，空气中弥漫着草药的味道。他自我介绍叫提奥多，是一位炼金术士。' },
+        { type:'npc', text:'"年轻人，我正需要帮手。我在炼制一种古老药剂，缺一种关键材料——银光草。"' },
+        { type:'npc', text:'"它只长在野外岩石区的石缝间，很难采。要是你能帮我搞到一株，我就教你魔法入门。怎么样？"' },
+      ],
+      choices: [
+        { text:'接受任务',
+          result:{ flags:['accepted_wizard'], questUpdate:['q_wizard','collect_herb'] },
+          msg:'你接下了【巫师的请求】。前往采药岩区寻找银光草。',
+          backOnContinue:true,
+        },
+        { text:'我考虑考虑', back:true },
+      ],
+    }],
+  },
+
+  // ─── Wild herb area ───
+  wild_herb_zone: {
+    icon: '🌿', title: '采药岩区',
+    variants: [
+      // Already collected, but quest active - allow recollect for inventory
+      {
+        when: gs => gs.questItems.includes('silver_herb'),
+        paragraphs: [
+          { type:'text', text:'你已经采到了银光草。这里还能找到一些普通草药。' },
+        ],
+        choices: [
+          { text:'采集普通草药', stat:'AGI',
+            successText:'你顺利采到了几株草药。',
+            failText:'你扎到了刺，没有收获。',
+            success:{ herb:2 }, fail:{} },
+          { text:'离开', back:true },
+        ],
+      },
+      // Quest active and looking for herb
+      {
+        when: gs => gs.activeQuests?.q_wizard === 'collect_herb',
+        paragraphs: [
+          { type:'text', text:'你来到了岩石区。这里到处是嶙峋的怪石，石缝中长着各色野草。你仔细搜索，终于在一道阴湿的石缝深处看到了——' },
+          { type:'text', text:'一株银光草，叶片散发着淡淡的银辉，正在微风中轻轻摇曳。' },
+        ],
+        choices: [
+          { text:'小心翼翼采摘', stat:'AGI',
+            successText:'你的手指修长而灵巧，整株连根挖出，没有损伤一片叶子。完美的银光草！',
+            failText:'你的手在锋利的岩石上划了一道，更糟的是银光草的根部断了。但还是勉强采到了一些。',
+            success:{ items:['silver_herb'], questUpdate:['q_wizard','return_wizard'], questItems:['silver_herb'] },
+            fail:{ hp:-3, items:['silver_herb'], questUpdate:['q_wizard','return_wizard'], questItems:['silver_herb'] },
+            successMsg:'获得【银光草】。回到古塔交给巫师。',
+            failMsg:'勉强获得【银光草】。回到古塔交给巫师。',
+          },
+          { text:'放弃，离开', back:true },
+        ],
+      },
+      // No quest yet
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你来到一片岩石区，到处都是嶙峋的怪石和稀稀落落的野草。' },
+        ],
+        choices: [
+          { text:'采集草药', stat:'AGI',
+            successText:'你采到了一些草药。', failText:'你被荆棘扎了一下，无所获。',
+            success:{ herb:2, exp:3 }, fail:{ hp:-2 } },
+          { text:'探索深处', stat:'INT',
+            successText:'你在深处发现了一些有趣的矿物。',
+            failText:'什么也没找到。',
+            success:{ gold:15, exp:8 }, fail:{} },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  // ─── Forest ───
+  forest_explore: {
+    icon: '🌲', title: '迷雾森林',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'迷雾森林笼罩在淡淡的薄雾中，阳光透过树冠洒下斑驳的光影。林中传来鸟鸣和远处不知名生物的叫声。' },
+      ],
+      choices: [
+        { text:'循着鸟鸣深入', stat:'AGI',
+          successText:'你穿过茂密的灌木，发现了一片野果园。', failText:'你迷路了，绕了好几圈才出来。',
+          success:{ hp:5, exp:8, gold:5 }, fail:{ hp:-3 } },
+        { text:'寻找猎物', stat:'AGI',
+          successText:'你猎到了一只野兔。', failText:'什么也没遇到。',
+          success:{ gold:10, exp:8 }, fail:{} },
+        { text:'返回', back:true },
+      ],
+    }],
+  },
+
+  // ─── Crypt entrance ───
+  crypt_entrance: {
+    icon: '🕯️', title: '墓园入口',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'十字墓园的入口立着一块斑驳的石碑。墓园内一座座坟茔在夕阳下投出长长的影子。气氛肃穆而压抑。' },
+      ],
+      choices: [
+        { text:'为亡者祈祷', result:{ fame:5, exp:3 }, msg:'你低声祈祷，心中泛起一丝平静。', stayHere:true },
+        { text:'深入墓穴', goto:null, back:false, gotoMap:'crypt' },
+        { text:'离开', back:true },
+      ],
+    }],
+  },
+
+  // ─── Crypt inner ───
+  crypt_inner: {
+    icon: '🪦', title: '墓穴深处',
+    variants: [
+      // Quest: find soldier amulet
+      {
+        when: gs => gs.activeQuests?.q_old_soldier === 'find_amulet',
+        paragraphs: [
+          { type:'text', text:'你下到墓穴深处。墙壁上挂着古老的火把，将石壁照得幽暗。空气中弥漫着霉味与一丝尘土。' },
+          { type:'text', text:'你想起老兵说的——他妻子的墓位于左侧第三个壁龛。你向那个方向走去，看到了一个落了灰的小坟，墓碑上刻着「艾莉」。' },
+          { type:'text', text:'坟前的供台上，有什么东西在火光下闪了一下。是一枚锈迹斑斑的银坠子，半埋在尘埃里。' },
+        ],
+        choices: [
+          { text:'轻巧拾起护身符', stat:'AGI',
+            successText:'你轻巧地拾起护身符。坠子虽然黯淡，但确实刻着"艾莉"的名字。',
+            failText:'你伸手时不小心碰倒了供台。一个骷髅猛地从棺中坐起！',
+            success:{ items:['soldier_amulet'], questItems:['soldier_amulet'], questUpdate:['q_old_soldier','return'] },
+            fail:{},  // 失败后会触发战斗
+            failGoto:'crypt_inner_skeleton',
+            successMsg:'获得【老兵的护身符】。',
+          },
+          { text:'掉头离开', back:true },
+        ],
+      },
+      // No quest
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'墓穴深处一片漆黑，只有火把的光勉强照亮你的脚下。' },
+          { type:'text', text:'突然——咔啦一声，一具骷髅从棺中坐起，幽蓝色火焰在它眼眶中燃起！' },
+        ],
+        choices: [
+          { text:'拔剑迎战', triggerCombat:'skeleton',
+            onWin:{ goto:'crypt_inner_skeleton_win' },
+            onLose:{ goto:'crypt_inner_skeleton_lose' },
+          },
+          { text:'撤退', stat:'AGI',
+            successText:'你扔下火把作为掩护，一口气冲了出来。',
+            failText:'你被骷髅追上，划伤了好几处。',
+            success:{}, fail:{ hp:-10 } },
+        ],
+      },
+    ],
+  },
+
+  // 触发战斗：从坟前惊扰骷髅
+  crypt_inner_skeleton: {
+    icon: '💀', title: '墓穴深处 · 骷髅惊醒',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'供台被你撞得砰然作响。立刻——咔啦一声，正前方的棺木盖子被掀飞，一具锈甲骷髅举着骨剑跳了出来！' },
+      ],
+      choices: [
+        { text:'拔剑迎战', triggerCombat:'skeleton',
+          onWin:{ goto:'crypt_inner_skeleton_win' },
+          onLose:{ goto:'crypt_inner_skeleton_lose' },
+        },
+      ],
+    }],
+  },
+
+  // 战斗胜利后
+  crypt_inner_skeleton_win: {
+    icon: '💀', title: '墓穴深处',
+    variants: [{
+      when: gs => gs.activeQuests?.q_old_soldier === 'find_amulet',
+      paragraphs: [
+        { type:'text', text:'骷髅在你的剑下化为一堆骨头。你长舒一口气，回到墓碑前——好在那枚护身符还在。' },
+        { type:'text', text:'你小心拾起它，揣进怀里。' },
+      ],
+      choices: [{
+        text: '离开墓穴',
+        result: {
+          items:['soldier_amulet'],
+          questItems:['soldier_amulet'],
+          questUpdate:['q_old_soldier','return'],
+          gold: 15,
+          items_alt: ['骷髅骨'],
+        },
+        msg: '获得【老兵的护身符】和一些战利品。',
+        backOnContinue: true,
+      }],
+    },
+    {
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'骷髅在你的剑下化为一堆骨头。你拾起几枚还能用的零件作战利品。' },
+      ],
+      choices: [{
+        text: '继续探索',
+        result: { gold:20, items:['骷髅骨'], exp:15 },
+        msg: '战斗胜利！',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  // 战斗失败后
+  crypt_inner_skeleton_lose: {
+    icon: '💀', title: '墓穴深处',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'你重伤倒地，骷髅的骨剑悬在你头顶。但奇怪的是——它停住了，仿佛失去了兴趣，又退回棺中。' },
+        { type:'text', text:'你拼命爬出墓穴，浑身是伤。' },
+      ],
+      choices: [{
+        text: '撤离',
+        result: { hp: -20 },
+        msg: '你险些丧命。',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  // ─── Bulletin (placeholder) ───
+  bulletin_enter: {
+    icon: '📋', title: '公告栏',
+    variants: [{ when:()=>true, paragraphs:[
+      { type:'text', text:'公告栏上贴满了各色悬赏，但大多已经过期。你从中找到几张相对新的。' },
+      { type:'text', text:'【悬赏】东边古塔的提奥多巫师，急聘冒险者。详情请直接前往。' },
+      { type:'text', text:'【公告】南方的黄昏港，欢迎冒险者前往谋生。沿镇南小路即达。' },
+    ], choices:[
+      { text:'记下来，离开', result:{ unlock:['dusk_harbor'] }, msg:'', backOnContinue:true },
+    ] }],
+  },
+  // ─── Church ───
+  church_enter: {
+    icon: '⛪', title: '教堂',
+    variants: [
+      // Already used today
+      {
+        when: gs => gs.healUsedToday,
+        paragraphs: [
+          { type:'text', text:'神父认得你，温和地摇了摇头：「孩子，今日的疗愈已经做过了。圣力需要时间恢复。」' },
+        ],
+        choices: [
+          { text:'诚心祈祷', result:{fame:3, exp:5}, msg:'你跪下默默祈祷。' },
+          { text:'离开', back:true },
+        ],
+      },
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'教堂内烛火摇曳，神父在祭坛前低声祷告。光线透过彩绘玻璃洒下五彩光斑。' },
+        ],
+        choices: [
+          { text:'治疗（-20g，每日限 1 次）', cost:{gold:20}, result:{hp:25, healUsed:true}, msg:'神父为你疗伤，HP +25。' },
+          { text:'祈祷', result:{fame:5, exp:5}, msg:'你跪下默默祈祷。' },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+  // ─── Dragon Lair (BOSS demo) ───
+  dragon_lair: {
+    icon: '🐉', title: '巨龙之巢',
+    variants: [
+      {
+        when: gs => gs.flags?.includes('dragon_slain'),
+        paragraphs: [
+          { type:'text', text:'巨龙的尸骸还横陈在洞中。胜利的痕迹已成了你的勋章。' },
+        ],
+        choices: [
+          { text:'离开', back:true },
+        ],
+      },
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你登上山脉之巅，眼前是一道巨大的洞穴。寒风从洞口吹出，带着古老的气息。' },
+          { type:'text', text:'你借着火把的光走入洞穴。越往深处走，地面越温暖。' },
+          { type:'text', text:'拐过最后一道弯——你看到了。一头远古巨龙盘卧在金币堆上，缓缓睁开了眼睛。它低沉的咆哮震得碎石滚落。' },
+          { type:'npc', text:'"小小的人类...你是来送死的吗？"' },
+        ],
+        choices: [
+          { text:'拔剑迎战', triggerCombat:'dragon',
+            onWin: { goto:'dragon_victory' },
+            onLose:{ goto:'dragon_defeat' },
+          },
+          { text:'转身离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  dragon_victory: {
+    icon: '🐉', title: '巨龙之巢',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'巨龙轰然倒下，洞穴在它的最后一声咆哮中震动不止。' },
+        { type:'text', text:'你瘫坐在金币堆上，胸口剧烈起伏。这一战将永远留在你的记忆中——这才是真正的冒险。' },
+      ],
+      choices: [{
+        text: '凯旋',
+        result: { gold: 200, fame: 50, items: ['龙鳞'], stats: { STR: 3 }, flags: ['dragon_slain'] },
+        msg: '你成为了屠龙者。',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  dragon_defeat: {
+    icon: '🐉', title: '巨龙之巢',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'巨龙的爪子轻轻拨开你，仿佛你只是一只蚊虫。' },
+        { type:'npc', text:'"...回去吧，小家伙。等你长大了再来。"' },
+        { type:'text', text:'你浑身是伤地爬出洞穴，但保住了性命。' },
+      ],
+      choices: [{
+        text: '撤离',
+        result: { hp: -20 },
+        msg: '虽败犹荣。',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  // ─── Blacksmith ───
+  smith_enter: {
+    icon: '⚒️', title: '铁匠铺',
+    variants: [
+      // Quest done
+      {
+        when: gs => gs.doneQuests?.includes('q_smith'),
+        paragraphs: [
+          { type:'text', text:'铁匠正在愉快地敲打着铁器。看到你便挥手致意。' },
+          { type:'npc', text:'"老朋友！锤子在我手里又焕发新生了。"' },
+        ],
+        choices: [
+          { text:'购买武器（30g）', cost:{gold:30}, result:{items:['精钢剑'], stats:{STR:1}}, msg:'STR +1 永久' },
+          { text:'离开', back:true },
+        ],
+      },
+      // Returned with hammer
+      {
+        when: gs => gs.activeQuests?.q_smith === 'return' && gs.questItems?.includes('iron_hammer'),
+        paragraphs: [
+          { type:'text', text:'铁匠看到你手中的锤子，眼睛瞬间湿润了。' },
+          { type:'npc', text:'"你...你真的找到了！这是我父亲留给我的，跟了我四十年的家伙！"' },
+          { type:'text', text:'他双手捧过铁锤，喃喃自语良久，然后从柜台后取出一袋金币递给你。' },
+        ],
+        choices: [{
+          text:'收下谢礼',
+          result:{ gold:120, fame:20, items:['锻造护甲'], stats:{VIT:2}, removeItems:['iron_hammer'], questUpdate:['q_smith','done'] },
+          msg:'获得 120 金币 + 锻造护甲 + VIT+2',
+          backOnContinue: true,
+        }],
+      },
+      // Quest accepted, hammer not found
+      {
+        when: gs => gs.activeQuests?.q_smith === 'find_hammer',
+        paragraphs: [
+          { type:'npc', text:'"老锤子还没找到吧？继续找找，应该就在矿坑深处。"' },
+        ],
+        choices: [
+          { text:'离开', back:true },
+        ],
+      },
+      // First visit
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'铁匠铺里弥漫着炭火和铁锈的味道。一个壮硕的男人正在锻台前发呆，手里的锤子换成了一根普通木棍。' },
+          { type:'text', text:'看到你进来，他抬起头，神色复杂。' },
+          { type:'npc', text:'"客人想买东西？我手头没什么好东西...唉，我的祖传铁锤丢了。"' },
+        ],
+        choices: [
+          { text:'询问详情', goto:'smith_quest_offer' },
+          { text:'购买基础武器（40g）', cost:{gold:40}, result:{items:['普通剑'], stats:{STR:1}}, msg:'STR +1' },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  smith_quest_offer: {
+    icon: '⚒️', title: '铁匠的请求',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'npc', text:'"上个月我去废弃矿坑探险，结果遇到了麻烦。慌乱之中把祖传铁锤丢在了里面。"' },
+        { type:'npc', text:'"我现在没办法做出像样的武器。如果你能帮我找回那把锤子，我会重重感谢你！"' },
+      ],
+      choices: [
+        { text:'答应帮忙', result:{ questUpdate:['q_smith','find_hammer'], unlock:['mine'] }, msg:'接下任务【铁匠的失物】。前往废弃矿坑寻找铁锤。', backOnContinue:true },
+        { text:'抱歉，做不到', back:true },
+      ],
+    }],
+  },
+
+  // ─── Merchant ───
+  merchant_enter: {
+    icon: '🏪', title: '杂货商',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'杂货商是个矮胖的中年男人，柜台上摆满了各色物品。看见你进门便满脸堆笑。' },
+        { type:'npc', text:'"客人需要点什么？应有尽有！"' },
+      ],
+      choices: [
+        { text:'治疗药水（15g）', cost:{gold:15}, result:{items:['治疗药水'], hp:20}, msg:'HP +20' },
+        { text:'强力药水（35g）', cost:{gold:35}, result:{items:['强力药水'], hp:40}, msg:'HP +40' },
+        { text:'幸运护符（80g）', cost:{gold:80}, result:{items:['幸运护符'], stats:{LCK:2}}, msg:'LCK +2 永久' },
+        { text:'谈谈最近的传闻', goto:'merchant_gossip' },
+        { text:'离开', back:true },
+      ],
+    }],
+  },
+
+  merchant_gossip: {
+    icon: '🏪', title: '杂货商的传闻',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'npc', text:'"听说啊...南边的废弃矿坑里出现了奇怪的怪物，已经有好几个冒险者没回来了。"' },
+        { type:'npc', text:'"还有东南的神秘神坛，半夜会发光。也不知道是好兆头还是凶兆头。"' },
+        { type:'npc', text:'"对了，南边沿着小路一直走，可以到一座叫黄昏港的港口。最近那边也不太平。"' },
+      ],
+      choices: [
+        { text:'多谢消息', result:{ exp: 5, unlock:['shrine','dusk_harbor'] }, msg:'获得了一些信息。', backOnContinue: true },
+      ],
+    }],
+  },
+
+  // ─── Mine ───
+  mine_entrance: {
+    icon: '⛏️', title: '废弃矿坑',
+    variants: [
+      // Quest done
+      {
+        when: gs => gs.doneQuests?.includes('q_smith'),
+        paragraphs: [
+          { type:'text', text:'你回到了曾经探索过的矿坑。这里仍有矿石可挖。' },
+        ],
+        choices: [
+          { text:'挖矿', stat:'STR',
+            successText:'你挥锤挖到了一些矿石。',
+            failText:'矿层太硬，挖了半天没收获。',
+            success:{ gold:15, exp:5 }, fail:{} },
+          { text:'离开', back:true },
+        ],
+      },
+      // On quest
+      {
+        when: gs => gs.activeQuests?.q_smith === 'find_hammer' && !gs.questItems?.includes('iron_hammer'),
+        paragraphs: [
+          { type:'text', text:'矿坑入口阴森森的，显然许久无人涉足。你点燃火把走了进去。' },
+          { type:'text', text:'里面比想象中宽敞，但到处是塌方留下的碎石。你按铁匠的描述搜寻——他说锤子掉在第二个岔路口附近。' },
+        ],
+        choices: [
+          { text:'深入搜寻', goto:'mine_deep' },
+          { text:'此次先撤', back:true },
+        ],
+      },
+      // First visit
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'废弃矿坑入口被藤蔓半掩，散发着潮湿气息。木质支撑梁早已腐朽。' },
+          { type:'text', text:'传闻这里有矿石可挖，但也常有怪物出没。' },
+        ],
+        choices: [
+          { text:'进入挖矿', stat:'STR',
+            successText:'你挖到了一些铜矿。',
+            failText:'矿石太硬，没收获，反而被落石砸到。',
+            success:{ gold:10, exp:8 }, fail:{ hp:-5 } },
+          { text:'探索深处', goto:'mine_deep_no_quest' },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  mine_deep: {
+    icon: '⛏️', title: '矿坑深处',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'你按着铁匠的指示来到第二个岔路口。火把光下，确实有一把锈迹斑斑的铁锤躺在角落。' },
+        { type:'text', text:'你伸手要拿——突然，黑暗中两点红光亮起，一只食尸鬼从阴影中扑出！' },
+      ],
+      choices: [
+        { text:'迎战', triggerCombat:'ghoul',
+          onWin:  { goto:'mine_hammer_get' },
+          onLose: { goto:'mine_hammer_fail' },
+        },
+        { text:'撤退', stat:'AGI',
+          successText:'你抓起铁锤就跑，险险逃了出来。',
+          failText:'食尸鬼追上你，你被划伤了几处。',
+          success:{ items:['iron_hammer'], questItems:['iron_hammer'], questUpdate:['q_smith','return'] },
+          fail:{ hp:-15 } },
+      ],
+    }],
+  },
+
+  mine_hammer_get: {
+    icon: '⛏️', title: '矿坑深处',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'食尸鬼倒下后，你拾起了铁锤——还热乎乎的，是真品。' },
+      ],
+      choices: [{
+        text: '带着锤子离开',
+        result:{ items:['iron_hammer'], questItems:['iron_hammer'], questUpdate:['q_smith','return'] },
+        msg: '获得【祖传铁锤】！',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  mine_hammer_fail: {
+    icon: '⛏️', title: '矿坑深处',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'你重伤倒地。等到苏醒时，食尸鬼已经走了，铁锤也消失不见。也许下次。' },
+      ],
+      choices: [{
+        text: '挣扎逃出',
+        result: { hp: -20 },
+        msg: '惨败而归。',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  mine_deep_no_quest: {
+    icon: '⛏️', title: '矿坑深处',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'矿坑深处一片黑暗。突然，黑影窜出！' },
+      ],
+      choices: [
+        { text:'迎战食尸鬼', triggerCombat:'ghoul',
+          onWin:  { goto:'mine_loot' },
+          onLose: { goto:'mine_hammer_fail' },
+        },
+        { text:'撤退', back:true },
+      ],
+    }],
+  },
+
+  mine_loot: {
+    icon: '⛏️', title: '矿坑深处',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'食尸鬼倒下后，你在它栖身的角落发现了一些被遗弃的财物。' },
+      ],
+      choices: [{
+        text: '收下',
+        result: { gold: 40, exp: 15 },
+        msg: '获得 40 金币',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  // ─── Shrine ───
+  shrine_meet: {
+    icon: '🗿', title: '神秘神坛',
+    variants: [
+      {
+        when: gs => gs.doneQuests?.includes('q_shrine'),
+        paragraphs: [
+          { type:'text', text:'神坛安静地立着，仿佛在守护着某种秘密。' },
+        ],
+        choices: [
+          { text:'离开', back:true },
+        ],
+      },
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你来到一座古老石坛前。石坛中央有一块凹陷，似乎用来放置什么物品。' },
+          { type:'text', text:'石坛上隐约刻着古老文字。你凑近辨认——' },
+        ],
+        choices: [
+          { text:'解读文字', stat:'INT',
+            successText:'文字告诉你：献上 30 金币，或献上一颗"心之果实"，神坛便会赐福。',
+            failText:'文字过于古老，你看不懂。',
+            success:{ flags:['shrine_read'] },
+            fail:{},
+          },
+          { text:'献上金币 30g', cost:{gold:30}, goto:'shrine_blessing_gold' },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  shrine_blessing_gold: {
+    icon: '🗿', title: '神秘神坛',
+    variants: [{
+      when: () => true,
+      paragraphs: [
+        { type:'text', text:'你将 30 金币放入石坛凹陷。金币突然发出柔和的光，被神秘力量吸收殆尽。' },
+        { type:'text', text:'温暖的能量包围你的身体，你感到精神焕发！' },
+      ],
+      choices: [{
+        text: '满足地离开',
+        result: { hp: 999, fame: 10, stats: { LCK: 1 }, questUpdate: ['q_shrine','done'] },
+        msg: '获得神坛祝福：HP 全恢复 + 声望 +10 + LCK +1',
+        backOnContinue: true,
+      }],
+    }],
+  },
+
+  // ─── Home ───
+  home_enter: {
+    icon: '🛏️', title: '自宅',
+    variants: [{ when:()=>true, paragraphs:[
+      { type:'text', text:'你回到了自己简陋但温暖的小屋。床很硬，但比露宿野外好。' },
+      { type:'text', text:`今天是第 ${0} 天... (一觉醒来又是新的一天)` },
+    ], choices:[
+      { text:'睡到次日（恢复行动 + 部分HP）', result:{sleep:true}, msg:'你睡了一晚，体力恢复了。' },
+      { text:'离开', back:true },
+    ] }],
+  },
+
+  // ════════════════════════════════
+  // HARBOR LOCATIONS (new content)
+  // ════════════════════════════════
+
+  // 黄昏港 · 码头
+  harbor_dock: {
+    icon: '⛵', title: '黄昏港 · 码头',
+    variants: [
+      // Lighthouse quest done
+      {
+        when: gs => gs.activeQuests?.q_lighthouse === 'return' && gs.flags?.includes('lighthouse_truth'),
+        paragraphs: [
+          { type:'text', text:'船长焦急地走到你跟前。「灯塔那边怎么样了？」' },
+          { type:'text', text:'你把所见所闻告诉了他——灯塔守已被海盗杀害，灯塔被人为熄灭。' },
+          { type:'npc', text:'「混蛋们！谢谢你查清了真相。」船长怒不可遏，递给你一袋金币。' },
+        ],
+        choices: [{
+          text:'收下报酬',
+          result:{ gold:90, fame:15, exp:30, questUpdate:['q_lighthouse','done'] },
+          msg:'获得 90 金币 + 声望 +15。',
+          backOnContinue:true,
+        }],
+      },
+      // Pirate quest return
+      {
+        when: gs => gs.activeQuests?.q_pirate === 'return' && gs.flags?.includes('pirate_killed'),
+        paragraphs: [
+          { type:'text', text:'你向船长展示了海盗头领的旗帜。' },
+          { type:'npc', text:'「你做到了！这下海岸太平了。」' },
+        ],
+        choices: [{
+          text:'领赏',
+          result:{ gold:100, fame:20, exp:35, items:['船长的弯刀'], stats:{STR:1}, questUpdate:['q_pirate','done'] },
+          msg:'获得 100 金币 + 船长的弯刀！',
+          backOnContinue:true,
+        }],
+      },
+      // Default
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'码头上水汽迷蒙，海鸥在桅杆间盘旋。一位络腮胡船长正叼着烟斗远眺海面。' },
+        ],
+        choices: [
+          { text:'与船长搭话', goto:'harbor_dock_captain' },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  harbor_dock_captain: {
+    icon: '⛵', title: '船长',
+    variants: [
+      // Pirate quest unaccepted
+      {
+        when: gs => !gs.activeQuests?.q_pirate && !gs.doneQuests?.includes('q_pirate'),
+        paragraphs: [
+          { type:'text', text:'船长瞥了你一眼，吐出一口烟圈。' },
+          { type:'npc', text:'「客人，找点事做？最近海岸悬崖上来了一伙海盗，骚扰渔民。我出 100 金请人收拾他们。」' },
+        ],
+        choices: [
+          { text:'接下任务', result:{ questUpdate:['q_pirate','kill_pirate'], unlock:['cliffs'] }, msg:'接下【海盗的赏金】。', backOnContinue:true },
+          { text:'再问问别的', goto:'harbor_dock_captain_more' },
+          { text:'告辞', back:true },
+        ],
+      },
+      // Lighthouse hint after pirate accepted
+      {
+        when: gs => !gs.activeQuests?.q_lighthouse && !gs.doneQuests?.includes('q_lighthouse'),
+        paragraphs: [
+          { type:'npc', text:'「灯塔已经熄灭三天了。我派的人一个也没回来。如果你要去悬崖那边，能否顺便看一眼？」' },
+        ],
+        choices: [
+          { text:'答应去看', result:{ questUpdate:['q_lighthouse','investigate'], unlock:['lighthouse','cliffs'] }, msg:'接下【消失的灯塔守】。', backOnContinue:true },
+          { text:'告辞', back:true },
+        ],
+      },
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'船长再次抽了一口烟。「最近还算太平。多谢你之前帮的忙。」' },
+        ],
+        choices: [{ text:'告辞', back:true }],
+      },
+    ],
+  },
+
+  harbor_dock_captain_more: {
+    icon: '⛵', title: '船长',
+    variants: [{
+      when:()=>true,
+      paragraphs:[
+        { type:'npc', text:'「这片海最近怪事多。灯塔灭了。鱼贩说他的稀有货在悬崖丢了。还有...镇上有奇怪集会，半夜唱歌。」' },
+        { type:'system', text:'（你了解到了港口的更多信息。）' },
+      ],
+      choices:[
+        { text:'接下海盗任务', result:{ questUpdate:['q_pirate','kill_pirate'], unlock:['cliffs'] }, msg:'接下【海盗的赏金】。', backOnContinue:true },
+        { text:'告辞', back:true },
+      ],
+    }],
+  },
+
+  // 鱼市
+  harbor_fishmonger: {
+    icon: '🐟', title: '鱼市',
+    variants: [
+      {
+        when: gs => gs.activeQuests?.q_fish === 'return' && gs.questItems?.includes('rare_fish'),
+        paragraphs: [
+          { type:'text', text:'你把那条银鳞鱼放到鱼贩的台前。' },
+          { type:'npc', text:'「我的天，是真品！这下我能在贵族那卖出大价钱了！」' },
+        ],
+        choices: [{
+          text:'收钱',
+          result:{ gold:65, exp:15, removeItems:['rare_fish'], questUpdate:['q_fish','done'] },
+          msg:'获得 65 金币。',
+          backOnContinue:true,
+        }],
+      },
+      {
+        when: gs => !gs.activeQuests?.q_fish && !gs.doneQuests?.includes('q_fish'),
+        paragraphs: [
+          { type:'text', text:'鱼市充满咸腥味。一位瘦小的鱼贩正在愁眉苦脸地擦拭柜台。' },
+          { type:'npc', text:'「客官，我有笔生意。海岸悬崖那边的渔网里有条银鳞鱼跑了，你帮我找回来，给你 65 金。」' },
+        ],
+        choices: [
+          { text:'答应', result:{ questUpdate:['q_fish','find_fish'], unlock:['cliffs'] }, msg:'接下【鱼市奇货】。', backOnContinue:true },
+          { text:'离开', back:true },
+        ],
+      },
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'鱼贩冲你招手：「客官又来了？」' },
+        ],
+        choices: [
+          { text:'买条腌鱼（10g）', cost:{gold:10}, result:{items:['腌鱼'], hp:5}, msg:'HP +5' },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  // 船员客栈
+  harbor_inn: {
+    icon: '🍻', title: '船员客栈',
+    variants: [
+      // Letter delivery
+      {
+        when: gs => gs.activeQuests?.q_letter === 'deliver' && gs.questItems?.includes('lost_letter'),
+        paragraphs: [
+          { type:'text', text:'你环顾客栈，按信封上写的「水手汤姆」找到一位皮肤黝黑的男人。' },
+          { type:'text', text:'你把信递给他。他双手微抖，撕开蜡封读了起来——眼眶很快红了。' },
+          { type:'npc', text:'「...是我妹妹的笔迹。她还活着。她还活着！」' },
+        ],
+        choices: [{
+          text:'告辞',
+          result:{ gold:50, fame:10, exp:20, removeItems:['lost_letter'], questUpdate:['q_letter','done'] },
+          msg:'你完成了一件温暖的事。',
+          backOnContinue:true,
+        }],
+      },
+      // Cult rumor
+      {
+        when: gs => !gs.activeQuests?.q_cult && !gs.doneQuests?.includes('q_cult') && !gs.flags?.includes('heard_cult'),
+        paragraphs: [
+          { type:'text', text:'昏暗的客栈里，几个船员在低声议论。你侧耳倾听——' },
+          { type:'npc', text:'「...真的，我亲眼看见的。半夜，他们都披着黑袍，唱着奇怪的歌...就在那个废仓库地下。」' },
+        ],
+        choices: [
+          { text:'追问', goto:'harbor_inn_cult', effect:{flags:['heard_cult']} },
+          { text:'喝一杯（10g）', cost:{gold:10}, result:{hp:8}, msg:'温暖的酒下肚。' },
+          { text:'离开', back:true },
+        ],
+      },
+      // Default
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'客栈一如既往的喧闹。' },
+        ],
+        choices: [
+          { text:'喝一杯（10g）', cost:{gold:10}, result:{hp:8}, msg:'HP +8' },
+          { text:'打听传闻（5g）', cost:{gold:5}, result:{exp:5}, msg:'你听到了一些零星传闻。' },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  harbor_inn_cult: {
+    icon: '🍻', title: '船员客栈 · 传闻',
+    variants: [{
+      when:()=>true,
+      paragraphs:[
+        { type:'npc', text:'「你想知道集会的事？我劝你别去。但要是非去不可——」' },
+        { type:'npc', text:'「码头南边的废仓库，地下有个暗门。今晚午夜，就是他们集会的日子。」' },
+      ],
+      choices:[
+        { text:'决定一探', result:{ questUpdate:['q_cult','infiltrate'], unlock:['harbor_cult'] }, msg:'接下【黑潮邪教】。', backOnContinue:true },
+        { text:'谢谢，告辞', back:true },
+      ],
+    }],
+  },
+
+  // 地下集会
+  harbor_cult_door: {
+    icon: '🕯️', title: '地下集会',
+    variants: [
+      {
+        when: gs => gs.doneQuests?.includes('q_cult'),
+        paragraphs: [
+          { type:'text', text:'昔日的集会已被摧毁。废仓库恢复了平静。' },
+        ],
+        choices: [{ text:'离开', back:true }],
+      },
+      {
+        when: gs => gs.activeQuests?.q_cult === 'infiltrate',
+        paragraphs: [
+          { type:'text', text:'你掀开暗门，沿着潮湿的木梯下到地下。' },
+          { type:'text', text:'果然——昏暗的地下室里，十几个披黑袍的人围成一圈，低声唱着不知名的咒语。' },
+          { type:'text', text:'圈子中央，一个身材高大的祭司正在祭坛前画着什么。他突然抬头——发现了你。' },
+          { type:'npc', text:'「不速之客！献给深渊吧！」' },
+        ],
+        choices: [
+          { text:'拔剑迎战', triggerCombat:'cult_priest',
+            onWin:  { goto:'harbor_cult_win' },
+            onLose: { goto:'harbor_cult_lose' } },
+          { text:'撤退', stat:'AGI',
+            successText:'你跃上木梯，钻出暗门，惊魂未定。',
+            failText:'黑袍人将你按住——你被打了一顿才得以脱身。',
+            success:{}, fail:{ hp:-25 } },
+        ],
+      },
+      // Default - need rumor first
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'你来到一座废弃仓库前。门紧锁着，似乎里面没什么有趣的。' },
+        ],
+        choices: [{ text:'离开', back:true }],
+      },
+    ],
+  },
+
+  harbor_cult_win: {
+    icon: '🕯️', title: '地下集会',
+    variants: [{
+      when:()=>true,
+      paragraphs:[
+        { type:'text', text:'祭司倒下后，黑袍人四散而逃。你在祭坛上找到了一些金银，还有一本厚重的禁书。' },
+      ],
+      choices:[{
+        text:'清理战场',
+        result:{ gold:80, fame:25, exp:40, items:['深渊禁书'], stats:{INT:1}, questUpdate:['q_cult','done'] },
+        msg:'获得 80 金币 + 深渊禁书 + INT+1',
+        backOnContinue:true,
+      }],
+    }],
+  },
+
+  harbor_cult_lose: {
+    icon: '🕯️', title: '地下集会',
+    variants: [{
+      when:()=>true,
+      paragraphs:[
+        { type:'text', text:'你被祭司打倒。黑袍人抬着你扔到街头，留下一声警告：「再来你就别想活着出去。」' },
+      ],
+      choices:[{
+        text:'狼狈退场',
+        result:{ hp:-20, fame:-5 },
+        msg:'你侥幸保命。',
+        backOnContinue:true,
+      }],
+    }],
+  },
+
+  // 海岸悬崖
+  cliffs_meet: {
+    icon: '🌊', title: '海岸悬崖',
+    variants: [
+      // Pirate quest active
+      {
+        when: gs => gs.activeQuests?.q_pirate === 'kill_pirate',
+        paragraphs: [
+          { type:'text', text:'你来到悬崖边。海浪拍打着岩石，海风咸腥。' },
+          { type:'text', text:'下方的小海湾里，几顶破帐篷围成一圈——这就是海盗营地。' },
+          { type:'text', text:'一个面目凶狠的独眼海盗手持弯刀走出帐篷，发现了你。' },
+        ],
+        choices: [
+          { text:'迎战海盗', triggerCombat:'pirate',
+            onWin:  { goto:'cliffs_pirate_win' },
+            onLose: { goto:'cliffs_pirate_lose' } },
+          { text:'撤退', back:true },
+        ],
+      },
+      // Fish quest active
+      {
+        when: gs => gs.activeQuests?.q_fish === 'find_fish',
+        paragraphs: [
+          { type:'text', text:'悬崖下渔网随处可见。你搜索半天——果然在一张破网底找到了那条还在挣扎的银鳞鱼。' },
+        ],
+        choices: [{
+          text:'抓住鱼',
+          stat:'AGI',
+          successText:'你眼疾手快，将鱼装入袋中。',
+          failText:'鱼狡猾地从你手中滑落了一次，但你最后还是抓住了它。',
+          success:{ items:['rare_fish'], questItems:['rare_fish'], questUpdate:['q_fish','return'] },
+          fail:{ hp:-3, items:['rare_fish'], questItems:['rare_fish'], questUpdate:['q_fish','return'] },
+          successMsg:'获得【银鳞鱼】！',
+          failMsg:'划伤了手，但抓到了【银鳞鱼】。',
+        }],
+      },
+      // Letter quest hook
+      {
+        when: gs => !gs.activeQuests?.q_letter && !gs.doneQuests?.includes('q_letter') && !gs.flags?.includes('found_letter'),
+        paragraphs: [
+          { type:'text', text:'你在悬崖边的礁石缝里看到一个被风吹来的信封，似乎被人遗失了很久。' },
+        ],
+        choices: [
+          { text:'捡起信件', result:{ items:['lost_letter'], questItems:['lost_letter'], flags:['found_letter'], questUpdate:['q_letter','deliver'] }, msg:'获得【一封陌生人的信】。', backOnContinue:true },
+          { text:'不管', back:true },
+        ],
+      },
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'悬崖边海风咸腥。你站在这里看了好一会儿海。' },
+        ],
+        choices: [
+          { text:'采集贝类', stat:'AGI',
+            successText:'你采到了几只可食用贝类。', failText:'贝类太顽固，你白忙一场。',
+            success:{ gold:8, exp:5 }, fail:{} },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+
+  cliffs_pirate_win: {
+    icon: '🌊', title: '海岸悬崖',
+    variants: [{
+      when:()=>true,
+      paragraphs:[
+        { type:'text', text:'海盗倒下后，剩下的喽啰一哄而散。你从尸体上取下一面海盗旗作为证据。' },
+      ],
+      choices:[{
+        text:'离开',
+        result:{ items:['海盗旗'], gold:30, flags:['pirate_killed'], questUpdate:['q_pirate','return'] },
+        msg:'获得【海盗旗】 + 30 金币。回港领赏。',
+        backOnContinue:true,
+      }],
+    }],
+  },
+
+  cliffs_pirate_lose: {
+    icon: '🌊', title: '海岸悬崖',
+    variants: [{
+      when:()=>true,
+      paragraphs:[
+        { type:'text', text:'你被海盗们一顿胖揍丢下了悬崖。万幸没有摔死，但身上的金子全没了。' },
+      ],
+      choices:[{
+        text:'爬回去',
+        result:{ hp:-20, gold:-30 },
+        msg:'你吃了大亏。',
+        backOnContinue:true,
+      }],
+    }],
+  },
+
+  // 废弃灯塔
+  lighthouse_meet: {
+    icon: '🗼', title: '废弃灯塔',
+    variants: [
+      {
+        when: gs => gs.flags?.includes('lighthouse_truth'),
+        paragraphs: [
+          { type:'text', text:'灯塔依旧静静地立着。塔顶的灯火再也无法点亮。' },
+        ],
+        choices: [{ text:'离开', back:true }],
+      },
+      {
+        when: gs => gs.activeQuests?.q_lighthouse === 'investigate',
+        paragraphs: [
+          { type:'text', text:'你登上灯塔。一阶一阶的木梯吱呀作响。塔顶的灯室里——你看到了惨烈的一幕：' },
+          { type:'text', text:'灯塔守倒在血泊中，胸口插着一把弯刀。墙上用血写着潦草的字：「海盗...夜晚...」' },
+          { type:'text', text:'灯塔的火焰被人为浇灭。这显然是有预谋的。' },
+        ],
+        choices: [
+          { text:'记下证据，撤离', result:{ flags:['lighthouse_truth'], questUpdate:['q_lighthouse','return'] }, msg:'你发现了真相。回港告诉船长。', backOnContinue:true },
+        ],
+      },
+      // No quest yet - hint
+      {
+        when: () => true,
+        paragraphs: [
+          { type:'text', text:'灯塔孤零零地立在岬角。塔顶没有亮光——已经熄灭多时了。' },
+          { type:'text', text:'门半敞着，似乎并没有上锁。' },
+        ],
+        choices: [
+          { text:'登塔查看', stat:'AGI',
+            successText:'你小心攀上塔顶，看到了惨剧——但这不是你的事，你默默退了出来。',
+            failText:'木梯腐朽，你跌了下来。',
+            success:{ flags:['lighthouse_truth'], exp:8 }, fail:{ hp:-8 } },
+          { text:'离开', back:true },
+        ],
+      },
+    ],
+  },
+};
+
+// Convenience aliases (so existing code keeps working)
+const QUESTS = window.GAMEDATA.QUESTS;
+const DIALOGS = window.GAMEDATA.DIALOGS;
+const MAPS = window.GAMEDATA.MAPS;
+const ENEMIES = window.GAMEDATA.ENEMIES;
+const TRAITS = window.GAMEDATA.TRAITS;
+const GOALS = window.GAMEDATA.GOALS;
+const ENDINGS = window.GAMEDATA.ENDINGS;
+const AVATARS = window.GAMEDATA.AVATARS;
+const SKILLS = window.GAMEDATA.SKILLS;
+
+// ════════════════════════════════
+// REACT APP
+// ════════════════════════════════
+const makeInitState = () => {
+  // Collect all default-unlocked node ids from all maps
+  const allMaps = [
+    window.GAMEDATA.WORLD_NODES || [],
+    window.GAMEDATA.TOWN_NODES || [],
+    window.GAMEDATA.CRYPT_NODES || [],
+    window.GAMEDATA.HARBOR_NODES || [],
+  ];
+  const initialUnlocks = [];
+  allMaps.forEach(arr => arr.forEach(n => {
+    if (n.defaultUnlocked) initialUnlocks.push(n.id);
+  }));
+
+  return {
+    name: '冒险者',
+    avatar: 'av1',  // legacy, kept for combat sprite fallback
+    face: {
+      faceShape: 'round',
+      skinTone: 'fair',
+      hairStyle: 'short',
+      hairColor: 'brown',
+      accessory: 'none',
+      expression: 'calm',
+    },
+    hp: 30, maxHp: 30,
+    gold: 50,
+    herb: 0,
+    exp: 0, expMax: 100,
+    level: 1,
+    fame: 0,
+    kills: 0,
+    day: 1,
+    actionsLeft: 5,
+    actionsPerDay: 5,
+    healUsedToday: false,
+    skills: [],
+    skillCooldowns: {},
+    inventory: [],
+    questItems: [],
+    flags: [],
+    activeQuests: {},
+    doneQuests: [],
+    stats: { STR:5, AGI:5, INT:5, CHA:5, VIT:5, LCK:5 },
+    freeStatPoints: 0,
+    traits: [],
+    goal: null,
+    hpBonus: 0,
+    intBonus: 0,
+    strPenalty: 0,
+    allBonus: 0,
+    currentMap: 'world',
+    currentLocId: 'dawn_town',  // 起点
+    unlockedNodes: initialUnlocks,
+    startedAt: Date.now(),
+  };
+};
+
+function App() {
+  const [gs, setGS] = useState(null);  // null until character created
+  const [view, setView] = useState('title');  // 'title' | 'create' | 'map' | 'dialog' | 'ending'
+  const [activeDialog, setActiveDialog] = useState(null);
+  const [rootDialog, setRootDialog] = useState(null);
+  const [storyLog, setStoryLog] = useState([]);
+  const [pendingChoices, setPendingChoices] = useState([]);
+  const [diceState, setDiceState] = useState(null);
+  const [questLogOpen, setQuestLogOpen] = useState(false);
+  const [itemShowcase, setItemShowcase] = useState(null);
+  const [goldFlash, setGoldFlash] = useState(false);
+  const [statUpToast, setStatUpToast] = useState(null);
+  const [paragraphsRevealed, setParagraphsRevealed] = useState(0);
+  const [combat, setCombat] = useState(null);
+  const [pendingPostCombat, setPendingPostCombat] = useState(null);
+  const [activeEnding, setActiveEnding] = useState(null);
+  const [activeDrawer, setActiveDrawer] = useState(null);  // 'character' | 'inventory' | 'quests' | 'log' | null
+
+  // Check for ending whenever gs changes (in dialog/map only, not during combat)
+  React.useEffect(() => {
+    if (!gs || combat || activeEnding || view === 'create' || view === 'title') return;
+    for (const ep of ENDINGS) {
+      if (ep.check(gs)) {
+        // Mark this ending as triggered (so it doesn't re-trigger)
+        if (gs.flags?.includes(`ending_${ep.id}`)) continue;
+        setGS(g => g ? ({...g, flags: [...g.flags, `ending_${ep.id}`]}) : g);
+        setActiveEnding(ep);
+        setView('ending');
+        return;
+      }
+    }
+  }, [gs?.hp, gs?.fame, gs?.gold, gs?.flags?.length, combat, activeEnding, view]);
+
+  // Start a new game with created character → show intro first
+  const startNewGame = (newGs) => {
+    setGS(newGs);
+    setView('intro');
+    setActiveDialog(null);
+    setRootDialog(null);
+    setStoryLog([]);
+    setPendingChoices([]);
+    setActiveEnding(null);
+  };
+
+  const enterWorldFromIntro = () => {
+    setView('map');
+  };
+
+  const goToTitle = () => {
+    setGS(null);
+    setView('title');
+    setActiveDialog(null);
+    setStoryLog([]);
+    setPendingChoices([]);
+    setCombat(null);
+    setActiveEnding(null);
+  };
+
+  const currentMap = gs ? MAPS[gs.currentMap] : null;
+
+  // Pick variant from a dialog
+  const pickVariant = (dialogId, gsRef = gs) => {
+    const d = DIALOGS[dialogId];
+    if (!d) return null;
+    const v = d.variants.find(v => v.when(gsRef));
+    return { dialog:d, variant:v };
+  };
+
+  // Open a dialog from map (sets it as root)
+  const openDialog = (dialogId) => {
+    const r = pickVariant(dialogId);
+    if (!r) { toast('对话未找到'); return; }
+    setActiveDialog(dialogId);
+    setRootDialog(dialogId);
+    setStoryLog([...r.variant.paragraphs]);
+    setPendingChoices(r.variant.choices);
+    setParagraphsRevealed(0);
+    setView('dialog');
+  };
+
+  // Map node click
+  const onClickNode = (n) => {
+    // Check unlock status
+    const isUnlocked = (gs.unlockedNodes || []).includes(n.id);
+    if (!isUnlocked) {
+      toast(n.unlockHint || '🔒 你还不知道这是什么地方');
+      return;
+    }
+    if (n.locked) { toast('🔒 暂时无法进入'); return; }
+    if (n.kind === 'compound') {
+      setGS(g => ({...g, currentMap: n.mapId, currentLocId: n.id}));
+    } else if (n.kind === 'dialog') {
+      // Free dialogs (own home, bulletin board) do not consume actions
+      const FREE_DIALOGS = ['home_enter', 'bulletin_enter'];
+      if (!FREE_DIALOGS.includes(n.dialogId)) {
+        if (gs.actionsLeft <= 0) {
+          toast('🌙 你今天精疲力尽，先回自宅休息吧');
+          return;
+        }
+        setGS(g => ({...g, actionsLeft: g.actionsLeft - 1}));
+      }
+      openDialog(n.dialogId);
+    }
+  };
+
+  const goBackMap = () => {
+    if (currentMap.parent) {
+      setGS(g => ({...g, currentMap: currentMap.parent}));
+    }
+  };
+
+  const closeDialog = () => {
+    setActiveDialog(null);
+    setRootDialog(null);
+    setStoryLog([]);
+    setPendingChoices([]);
+    setView('map');
+  };
+
+  // Apply effect to game state, returns flash/showcase triggers
+  const applyEffect = (effect) => {
+    if (!effect) return;
+
+    // Trigger flashy feedbacks
+    if (effect.gold && effect.gold >= 50) {
+      setGoldFlash(true);
+      setTimeout(()=>setGoldFlash(false), 800);
+    }
+    if (effect.stats) {
+      const parts = Object.entries(effect.stats).map(([k,v]) => `${k} ${v>0?'+':''}${v}`);
+      setStatUpToast(parts.join('  '));
+      setTimeout(()=>setStatUpToast(null), 2000);
+    }
+    // Quest item showcase
+    if (effect.questItems && effect.questItems.length) {
+      const itemId = effect.questItems[0];
+      const info = ITEM_INFO[itemId];
+      if (info) {
+        setTimeout(() => setItemShowcase(info), 400);
+      }
+    }
+    // Regular important item showcase
+    if (effect.items && effect.items.length) {
+      const itemName = effect.items[0];
+      const info = ITEM_INFO[itemName];
+      if (info && (itemName.length > 2 || info.name.length > 3)) {
+        // Show only "story" items (named, not generic loot)
+        if (['老兵的短匕','基础魔法导引','古护身符'].includes(itemName)) {
+          setTimeout(() => setItemShowcase(info), 400);
+        }
+      }
+    }
+
+    setGS(g => {
+      const ng = { ...g };
+      if (effect.gold) ng.gold = Math.max(0, ng.gold + effect.gold);
+      if (effect.sleep) {
+        ng.day += 1;
+        ng.actionsLeft = ng.actionsPerDay;
+        ng.healUsedToday = false;
+        ng.hp = Math.min(ng.maxHp, ng.hp + Math.round(ng.maxHp * 0.5));
+      }
+      if (effect.healUsed) {
+        ng.healUsedToday = true;
+      }
+      if (effect.unlock) {
+        // Unlock one or more node ids (string or array)
+        const ids = Array.isArray(effect.unlock) ? effect.unlock : [effect.unlock];
+        const newOnes = ids.filter(id => !ng.unlockedNodes.includes(id));
+        if (newOnes.length > 0) {
+          ng.unlockedNodes = [...ng.unlockedNodes, ...newOnes];
+          // Show toast for each new unlock
+          setTimeout(() => {
+            newOnes.forEach((nid, i) => {
+              setTimeout(() => {
+                const allNodes = [
+                  ...(window.GAMEDATA.WORLD_NODES||[]),
+                  ...(window.GAMEDATA.TOWN_NODES||[]),
+                  ...(window.GAMEDATA.HARBOR_NODES||[]),
+                  ...(window.GAMEDATA.CRYPT_NODES||[]),
+                ];
+                const node = allNodes.find(n => n.id === nid);
+                if (node) {
+                  setStatUpToast(`📍 新地点：${node.icon} ${node.name}`);
+                  setTimeout(() => setStatUpToast(null), 2200);
+                }
+              }, i * 2400);
+            });
+          }, 200);
+        }
+      }
+      if (effect.hp) {
+        if (effect.hp >= 999) ng.hp = ng.maxHp;
+        else ng.hp = Math.max(0, Math.min(ng.maxHp, ng.hp + effect.hp));
+      }
+      if (effect.exp) {
+        // Apply exp + check level-up
+        const result = gainExp(ng, effect.exp);
+        ng.exp = result.state.exp;
+        ng.level = result.state.level;
+        ng.expMax = result.state.expMax;
+        ng.maxHp = result.state.maxHp;
+        ng.hp = result.state.hp;
+        ng.freeStatPoints = result.state.freeStatPoints;
+        ng.skills = result.state.skills;
+        // Show toast outside setState
+        if (result.unlocked.length || result.state.level > g.level) {
+          setTimeout(() => {
+            if (result.state.level > g.level) {
+              setStatUpToast(`🎉 升级！Lv.${result.state.level}`);
+              setTimeout(() => setStatUpToast(null), 2200);
+            }
+            result.unlocked.forEach((s, i) => {
+              setTimeout(() => setItemShowcase({
+                icon: s.icon, name: '解锁技能：'+s.name, desc: s.desc,
+              }), 800 + i*1500);
+            });
+          }, 200);
+        }
+      }
+      if (effect.fame) ng.fame += effect.fame;
+      if (effect.herb) ng.herb = Math.max(0, ng.herb + effect.herb);
+      if (effect.items) ng.inventory = [...ng.inventory, ...effect.items];
+      if (effect.questItems) {
+        effect.questItems.forEach(qi => {
+          if (!ng.questItems.includes(qi)) ng.questItems = [...ng.questItems, qi];
+        });
+      }
+      if (effect.removeItems) {
+        ng.questItems = ng.questItems.filter(qi => !effect.removeItems.includes(qi));
+        ng.inventory = ng.inventory.filter(it => !effect.removeItems.includes(it));
+      }
+      if (effect.flags) ng.flags = [...new Set([...ng.flags, ...effect.flags])];
+      if (effect.stats) {
+        ng.stats = { ...ng.stats };
+        Object.entries(effect.stats).forEach(([k,v]) => { ng.stats[k] = (ng.stats[k]||0) + v; });
+      }
+      if (effect.questUpdate) {
+        const [qid, step] = effect.questUpdate;
+        ng.activeQuests = { ...ng.activeQuests };
+        if (step === 'done') {
+          delete ng.activeQuests[qid];
+          if (!ng.doneQuests.includes(qid)) ng.doneQuests = [...ng.doneQuests, qid];
+        } else {
+          ng.activeQuests[qid] = step;
+        }
+      }
+      return ng;
+    });
+  };
+
+  // Choose an option
+  const onChoose = (choice) => {
+    // Check requires
+    if (choice.requires) {
+      for (const [k,v] of Object.entries(choice.requires)) {
+        if ((gs[k]||0) < v) { toast(`需要 ${k} ≥ ${v}`); return; }
+      }
+    }
+    if (choice.cost?.gold) {
+      if (gs.gold < choice.cost.gold) { toast('金币不足'); return; }
+      applyEffect({ gold: -choice.cost.gold });
+    }
+
+    // Trigger full combat (BOSS / important fight)
+    if (choice.triggerCombat) {
+      const enemyId = choice.triggerCombat;
+      const enemy = ENEMIES[enemyId];
+      if (!enemy) { toast(`敌人未定义: ${enemyId}`); return; }
+      // Append a "你拔剑迎战" line to story log
+      setStoryLog(prev => [...prev, { type:'system', text:`> 你选择：${choice.text}` }]);
+      setParagraphsRevealed(prev => prev + 1);
+      setPendingChoices([]);
+      // Start combat
+      setCombat({
+        enemyId,
+        enemy: { ...enemy, currentHp: enemy.hp },
+        playerHp: gs.hp,
+        log: [`⚔️ 与【${enemy.name}】的战斗开始了！`],
+        turn: 0,
+        diceVal: null,
+        rolling: false,
+        done: false,
+        playerAnim: null,
+        enemyAnim: null,
+        buffs: [],            // active player buffs
+        skillCooldowns: {},   // skillId -> turns remaining
+        skipTurns: 0,         // for meditate
+      });
+      // Stash post-combat outcomes for later
+      setPendingPostCombat({
+        onWin:  choice.onWin,
+        onLose: choice.onLose,
+      });
+      return;
+    }
+
+    // Handle stat-based dice roll
+    if (choice.stat) {
+      const stat = gs.stats[choice.stat] || 5;
+      const rate = calcRate(stat, gs.stats.LCK);
+      setDiceState({ choice, stat:choice.stat, rate, rolling:true, roll:null, success:null });
+
+      let count = 0;
+      const interval = setInterval(() => {
+        count++;
+        setDiceState(d => d ? ({...d, roll: Math.floor(Math.random()*20)+1}) : d);
+        if (count >= 16) {
+          clearInterval(interval);
+          const finalRoll = Math.floor(Math.random()*20)+1;
+          const isCrit = finalRoll === 20;
+          const isFumble = finalRoll === 1;
+          const success = isCrit ? true : isFumble ? false : (finalRoll/20*100) <= rate;
+          setDiceState(d => d ? ({...d, rolling:false, roll:finalRoll, success, isCrit, isFumble}) : d);
+        }
+      }, 60);
+      return;
+    }
+
+    // Non-stat: directly apply
+    applyChoice(choice, true, false, false);
+  };
+
+  // ── Combat actions ──
+  const combatRoll = () => {
+    if (!combat || combat.done || combat.rolling) return;
+    setCombat(c => ({...c, rolling:true, diceVal:null}));
+    let count = 0;
+    const interval = setInterval(() => {
+      count++;
+      setCombat(c => c ? ({...c, diceVal: Math.floor(Math.random()*20)+1}) : c);
+      if (count >= 14) {
+        clearInterval(interval);
+        const roll = Math.floor(Math.random()*20)+1;
+        resolveCombatTurn(roll);
+      }
+    }, 55);
+  };
+
+  const resolveCombatTurn = (roll) => {
+    setCombat(c => {
+      if (!c) return c;
+      const isCrit = roll === 20;
+      const isFumble = roll === 1;
+      const hitRate = calcRate(gs.stats.STR, gs.stats.LCK);
+      const hasBattleCry = (c.buffs || []).includes('battle_cry');
+      const hasParry = (c.buffs || []).includes('parry');
+      const hit = hasBattleCry || (!isFumble && (isCrit || (roll/20*100) <= hitRate));
+      const effectiveCrit = hasBattleCry || isCrit;
+      const playerDmg = hit ? Math.max(1, Math.round(gs.stats.STR * 1.5 + roll * 0.4) * (effectiveCrit?2:1)) : 0;
+      let enemyDmg = Math.max(1, Math.round(c.enemy.atk * (0.7 + Math.random()*0.6)));
+      let parryReflect = 0;
+      if (hasParry) {
+        parryReflect = Math.round(enemyDmg / 2);
+        enemyDmg = 0;
+      }
+      const newEnemyHp = Math.max(0, c.enemy.currentHp - playerDmg - parryReflect);
+      const newPlayerHp = Math.max(0, c.playerHp - (newEnemyHp <= 0 ? 0 : enemyDmg));
+
+      const newLog = [...c.log];
+      if (effectiveCrit)   newLog.push(`✦ 暴击！你对${c.enemy.name}造成 ${playerDmg} 伤害！`);
+      else if (hit) newLog.push(`✓ 命中！${c.enemy.name} -${playerDmg} HP`);
+      else          newLog.push(`✕ 未命中`);
+      if (parryReflect > 0) newLog.push(`🛡️ 格挡反击！${c.enemy.name} -${parryReflect} HP`);
+      if (newEnemyHp > 0) {
+        if (hasParry) newLog.push(`🛡️ 你挡下了攻击`);
+        else newLog.push(`💢 ${c.enemy.name}还击 -${enemyDmg} HP`);
+      }
+
+      const done = newEnemyHp<=0 || newPlayerHp<=0;
+      const won = newEnemyHp <= 0;
+      if (done) {
+        newLog.push(won
+          ? `🏆 你击败了${c.enemy.name}！`
+          : `💀 你被${c.enemy.name}击倒了...`);
+      }
+
+      // Decay buffs (one-shot) and reduce cooldowns
+      const newBuffs = (c.buffs || []).filter(b => b !== 'battle_cry' && b !== 'parry');
+      const newCD = {};
+      Object.entries(c.skillCooldowns || {}).forEach(([k,v]) => {
+        if (v > 1) newCD[k] = v - 1;
+      });
+
+      return {
+        ...c,
+        rolling: false,
+        diceVal: roll,
+        playerHp: newPlayerHp,
+        enemy: { ...c.enemy, currentHp: newEnemyHp },
+        log: newLog,
+        turn: c.turn+1,
+        done, won,
+        playerAnim: hit ? 'attacking' : null,
+        enemyAnim: (newEnemyHp > 0 && (enemyDmg > 0 || parryReflect > 0)) ? 'hurt' : null,
+        playerDmg: hit ? playerDmg : null,
+        enemyDmg: (newEnemyHp > 0 && enemyDmg > 0) ? enemyDmg : null,
+        buffs: newBuffs,
+        skillCooldowns: newCD,
+      };
+    });
+    setTimeout(() => setCombat(c => c ? ({...c, playerAnim:null, enemyAnim:null, playerDmg:null, enemyDmg:null}) : c), 600);
+  };
+
+  const combatFlee = () => {
+    if (!combat || combat.done) return;
+    // Half HP, treat as lose
+    setGS(g => ({...g, hp: Math.max(1, Math.round(g.hp * 0.6))}));
+    setCombat(c => c ? ({...c, done:true, won:false, log:[...c.log, '🏳️ 你逃出了战场，但失去了不少 HP。']}) : c);
+  };
+
+  const combatSkill = (skill) => {
+    if (!combat || combat.done || combat.rolling) return;
+    if ((combat.skillCooldowns?.[skill.id] || 0) > 0) {
+      toast(`${skill.name} 冷却中`);
+      return;
+    }
+    setCombat(c => {
+      const newLog = [...c.log, `✨ 你使用了【${skill.name}】！`];
+      const newBuffs = [...(c.buffs || [])];
+      const newCD = { ...(c.skillCooldowns || {}), [skill.id]: skill.cooldown };
+      let newPlayerHp = c.playerHp;
+      let newEnemyHp = c.enemy.currentHp;
+      let newDone = c.done;
+      let newWon = c.won;
+      let newSkipTurns = c.skipTurns || 0;
+
+      switch (skill.id) {
+        case 'power_strike': {
+          const dmg = Math.max(2, Math.round(gs.stats.STR * 3));
+          newEnemyHp = Math.max(0, newEnemyHp - dmg);
+          newLog.push(`💥 强力一击！${c.enemy.name} -${dmg} HP`);
+          if (newEnemyHp <= 0) { newDone = true; newWon = true; newLog.push(`🏆 你击败了${c.enemy.name}！`); }
+          break;
+        }
+        case 'heal': {
+          const heal = Math.round(gs.maxHp * 0.3);
+          newPlayerHp = Math.min(gs.maxHp, newPlayerHp + heal);
+          newLog.push(`💚 你恢复了 ${heal} HP`);
+          break;
+        }
+        case 'flee_master': {
+          newDone = true;
+          newWon = false;
+          newLog.push('💨 你瞬身脱离战场，毫发无损！');
+          break;
+        }
+        case 'battle_cry': {
+          newBuffs.push('battle_cry');
+          newLog.push('🔥 战吼！下次攻击必中且暴击。');
+          break;
+        }
+        case 'parry': {
+          newBuffs.push('parry');
+          newLog.push('🛡️ 你举盾格挡，本回合免伤。');
+          break;
+        }
+        case 'meditate': {
+          newPlayerHp = gs.maxHp;
+          newSkipTurns = 3;
+          newLog.push('✨ 你冥想恢复全部 HP，但接下来 3 回合无法行动。');
+          break;
+        }
+      }
+
+      return {
+        ...c,
+        playerHp: newPlayerHp,
+        enemy: { ...c.enemy, currentHp: newEnemyHp },
+        log: newLog,
+        buffs: newBuffs,
+        skillCooldowns: newCD,
+        skipTurns: newSkipTurns,
+        done: newDone,
+        won: newWon,
+      };
+    });
+  };
+
+  const exitCombat = () => {
+    if (!combat) return;
+    const won = combat.won;
+    const enemy = combat.enemy;
+    const finalPlayerHp = combat.playerHp;
+    const post = pendingPostCombat;
+
+    // Apply final HP and rewards
+    setGS(g => {
+      const ng = {...g, hp: finalPlayerHp};
+      if (won) {
+        ng.gold += enemy.gold;
+        ng.exp += enemy.exp;
+        ng.kills = (ng.kills||0) + 1;
+      }
+      return ng;
+    });
+
+    // Show combat result paragraph
+    const resultPara = {
+      type: 'result',
+      success: won,
+      text: won
+        ? `你击败了【${enemy.name}】！`
+        : `你被【${enemy.name}】击倒了...`,
+      outcome: won ? { gold: enemy.gold, exp: enemy.exp } : { hp: -10 },
+    };
+    setStoryLog(prev => [...prev, resultPara]);
+    setParagraphsRevealed(prev => prev + 1);
+
+    setCombat(null);
+    setPendingPostCombat(null);
+
+    // Continue to onWin/onLose dialog
+    setTimeout(() => {
+      const branch = won ? post?.onWin : post?.onLose;
+      if (branch?.goto) {
+        const r = pickVariant(branch.goto);
+        if (r) {
+          setActiveDialog(branch.goto);
+          setStoryLog(prev => [...prev, { type:'divider' }, ...r.variant.paragraphs]);
+          setPendingChoices(r.variant.choices);
+        } else {
+          loadRootMenu();
+        }
+      } else {
+        loadRootMenu();
+      }
+    }, 200);
+  };
+
+  // Confirm dice → apply outcome
+  const onDiceConfirm = () => {
+    if (!diceState || diceState.rolling) return;
+    const { choice, success, isCrit, isFumble } = diceState;
+    setDiceState(null);
+    applyChoice(choice, success, isCrit, isFumble);
+  };
+
+  // Apply choice outcome to story log
+  const applyChoice = (choice, success, isCrit, isFumble) => {
+    let resultText = '';
+    let outcome = {};
+    let resultClass = success ? 'success' : 'fail';
+
+    if (choice.stat) {
+      // Stat outcome
+      outcome = success ? (choice.success || {}) : (choice.fail || {});
+      if (isCrit) resultText = '✦ 大成功！' + (choice.successText || '完美的判定！');
+      else if (isFumble) resultText = '✕ 大失败...' + (choice.failText || '一切都偏离了预期。');
+      else if (success) resultText = choice.successText || '判定成功。';
+      else resultText = choice.failText || '判定失败。';
+
+      // Apply crit/fumble bonus
+      if (isCrit) {
+        outcome = {...outcome};
+        if (outcome.gold) outcome.gold = Math.round(outcome.gold * 1.5);
+        if (outcome.exp) outcome.exp = Math.round(outcome.exp * 1.5);
+      }
+      if (isFumble) {
+        outcome = {...outcome};
+        outcome.hp = Math.min(outcome.hp || 0, (outcome.hp || 0) - 5);
+      }
+    } else {
+      // Non-stat outcome
+      outcome = choice.result || choice.effect || {};
+      resultText = (success ? (choice.successMsg || choice.msg) : (choice.failMsg || choice.msg)) || '';
+      if (!resultText && Object.keys(outcome).length === 0) {
+        // No outcome to show
+      }
+    }
+
+    applyEffect(outcome);
+
+    // Append result + outcome rewards to story log
+    const newPara = [];
+    // Add player's choice as system message
+    newPara.push({ type:'system', text:`> 你选择：${choice.text}` });
+    if (resultText) {
+      newPara.push({ type:'result', text:resultText, success:!isFumble && success, outcome });
+    }
+
+    setStoryLog(prev => [...prev, ...newPara]);
+    // Reveal the choice result paragraphs immediately - player just chose, no need for tap-to-continue
+    setParagraphsRevealed(prev => prev + newPara.length);
+    setPendingChoices([]);
+
+    // Decide next state
+    setTimeout(() => {
+      const nextDialog = success && choice.successGoto
+        ? choice.successGoto
+        : choice.goto;
+
+      // 1. Travel to a different map
+      if (choice.gotoMap) {
+        setGS(g => ({...g, currentMap: choice.gotoMap}));
+        closeDialog();
+        return;
+      }
+
+      // 2. Force-return (e.g. quest reward → leave)
+      if (choice.backOnContinue) {
+        setPendingChoices([{ text:'继续', _close:true }]);
+        return;
+      }
+
+      // 3. Explicit "leave" choice
+      if (choice.back) {
+        closeDialog();
+        return;
+      }
+
+      // 4. Go to next dialog scene
+      if (nextDialog) {
+        const r = pickVariant(nextDialog);
+        if (r) {
+          setActiveDialog(nextDialog);
+          setStoryLog(prev => [...prev, { type:'divider' }, ...r.variant.paragraphs]);
+          setPendingChoices(r.variant.choices);
+        } else {
+          // Fallback to root menu
+          loadRootMenu();
+        }
+        return;
+      }
+
+      // 5. Default: stayHere or no goto → return to root dialog menu
+      // This makes the conversation continue naturally instead of dead-ending with "继续"
+      loadRootMenu();
+    }, 100);
+  };
+
+  // Reload the root dialog (the one originally opened from map) and show its menu
+  const loadRootMenu = () => {
+    const root = rootDialog || activeDialog;
+    const r = pickVariant(root);
+    if (r) {
+      setActiveDialog(root);
+      // Append a soft divider and show fresh variant paragraphs
+      setStoryLog(prev => [...prev, { type:'divider' }, ...r.variant.paragraphs]);
+      setPendingChoices(r.variant.choices);
+    } else {
+      setPendingChoices([{ text:'继续', _close:true }]);
+    }
+  };
+
+  // Get currentMap if gs exists
+  const currentMap2 = gs ? MAPS[gs.currentMap] : null;
+
+  return (
+    <div className="app">
+      {gs && view !== 'title' && view !== 'create' && view !== 'intro' && view !== 'ending' && (
+        <TopStatus gs={gs} onOpenQuests={()=>setActiveDrawer('quests')} />
+      )}
+      <div className="app-content">
+        {view === 'title' && <TitleScreen onStart={()=>setView('create')} />}
+        {view === 'create' && <CreateScreen onStart={startNewGame} onBack={goToTitle} />}
+        {view === 'intro' && gs && (
+          <IntroScreen gs={gs} onContinue={enterWorldFromIntro} />
+        )}
+        {view === 'ending' && activeEnding && gs && (
+          <EndingScreen ep={activeEnding} gs={gs} onRestart={()=>setView('create')} onTitle={goToTitle} />
+        )}
+        {view === 'map' && gs && (
+          <MapScreen
+            map={currentMap2}
+            mapId={gs.currentMap}
+            gs={gs}
+            onClickNode={onClickNode}
+            onBack={goBackMap}
+          />
+        )}
+        {view === 'dialog' && !combat && gs && (
+          <DialogScreen
+            dialogId={activeDialog}
+            storyLog={storyLog}
+            paragraphsRevealed={paragraphsRevealed}
+            setParagraphsRevealed={setParagraphsRevealed}
+            choices={pendingChoices}
+            gs={gs}
+            onChoose={(c) => {
+              if (c._close) { closeDialog(); return; }
+              onChoose(c);
+            }}
+            onBack={closeDialog}
+          />
+        )}
+        {combat && gs && (
+          <CombatScreen
+            combat={combat}
+            gs={gs}
+            onRoll={combatRoll}
+            onFlee={combatFlee}
+            onExit={exitCombat}
+            onSkill={combatSkill}
+          />
+        )}
+        {diceState && <DiceOverlay state={diceState} onConfirm={onDiceConfirm} />}
+        {questLogOpen && gs && <QuestLog gs={gs} onClose={()=>setQuestLogOpen(false)} />}
+        {goldFlash && <div className="gold-flash" />}
+        {statUpToast && <div className="stat-up-toast">⬆️ {statUpToast}</div>}
+        {itemShowcase && <ItemShowcase info={itemShowcase} onClose={()=>setItemShowcase(null)} />}
+        {activeDrawer && gs && (
+          <DrawerPanel which={activeDrawer} gs={gs} onClose={()=>setActiveDrawer(null)} />
+        )}
+      </div>
+      {gs && (view === 'map' || view === 'dialog') && !combat && (
+        <BottomNav gs={gs} active={activeDrawer} onTab={setActiveDrawer} />
+      )}
+    </div>
+  );
+}
+
+function TopStatus({ gs, onOpenQuests }) {
+  const activeCnt = Object.keys(gs.activeQuests).length;
+  const hpPct = Math.max(0, gs.hp / gs.maxHp * 100);
+  const expPct = Math.max(0, gs.exp / gs.expMax * 100);
+  return (
+    <div className="top-status">
+      <div className="ts-row">
+        <div className="ts-avatar">
+          {gs.face ? <FaceAvatar face={gs.face} size={40} /> : '🧙'}
+          <div className="ts-lv-badge">Lv{gs.level||1}</div>
+        </div>
+        <div className="ts-info">
+          <div className="ts-name-row">
+            <span className="ts-name">{gs.name}</span>
+            <div className="ts-bars">
+              <div className="ts-hp-bar">
+                <div className="ts-hp-fill" style={{width:hpPct+'%'}} />
+              </div>
+              <div className="ts-exp-bar">
+                <div className="ts-exp-fill" style={{width:expPct+'%'}} />
+              </div>
+            </div>
+            <span className="ts-hp-text">{gs.hp}/{gs.maxHp}</span>
+          </div>
+          <div className="ts-stats-grid">
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">⚔️</span>STR <span className="ts-stat-cell-val">{gs.stats.STR}</span></span>
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">💨</span>AGI <span className="ts-stat-cell-val">{gs.stats.AGI}</span></span>
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">✨</span>INT <span className="ts-stat-cell-val">{gs.stats.INT}</span></span>
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">💛</span>CHA <span className="ts-stat-cell-val">{gs.stats.CHA}</span></span>
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">💚</span>VIT <span className="ts-stat-cell-val">{gs.stats.VIT}</span></span>
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">🔮</span>LCK <span className="ts-stat-cell-val">{gs.stats.LCK}</span></span>
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">💰</span><span className="ts-stat-cell-val">{gs.gold}</span></span>
+            <span className="ts-stat-cell"><span className="ts-stat-cell-icon">🏅</span><span className="ts-stat-cell-val">{gs.fame}</span></span>
+          </div>
+          <div className="ts-day-row">
+            <span className="ts-day">第 {gs.day} 天</span>
+            <span className="ts-actions">
+              {[...Array(gs.actionsPerDay)].map((_,i) => (
+                <span key={i} className={`ts-action-pip ${i<gs.actionsLeft?'on':'off'}`}>●</span>
+              ))}
+            </span>
+            {gs.freeStatPoints > 0 && <span className="ts-free-pts">+{gs.freeStatPoints} 点可分配</span>}
+          </div>
+        </div>
+        <div className="ts-buttons">
+          <button className="ts-btn" onClick={onOpenQuests}>
+            📜
+            {activeCnt > 0 && <span className="ts-btn-badge">{activeCnt}</span>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MapScreen({ map, mapId, gs, onClickNode, onBack }) {
+  return (
+    <div className={`map-screen ${map.bg}`}>
+      {map.bg === 'world' ? <WorldTerrain /> : <TownTerrain />}
+      <div className="map-title">{map.title}</div>
+      {map.parent && <button className="map-back-btn" onClick={onBack}>← 返回上层</button>}
+      <svg className="compass" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="20" fill="rgba(0,0,0,0.4)" stroke="#d4a020" strokeWidth="1"/>
+        <path d="M24 6 L20 24 L24 22 L28 24 Z" fill="#c84030"/>
+        <path d="M24 42 L20 24 L24 26 L28 24 Z" fill="#c0a878"/>
+        <text x="24" y="14" textAnchor="middle" fontSize="6" fill="#d4a020" fontWeight="bold">N</text>
+      </svg>
+
+      {map.nodes.map(n => {
+        // Determine unlock status
+        const isUnlocked = (gs.unlockedNodes || []).includes(n.id);
+        // If never unlocked AND has unlockHint, show as locked silhouette;
+        // if no unlockHint and not unlocked, hide entirely (shouldn't happen now)
+        const isHidden = !isUnlocked && !n.unlockHint;
+        const isLocked = !isUnlocked && !!n.unlockHint;
+        if (isHidden) return null;
+
+        const isCurrent = (mapId === 'world' && n.id === gs.currentLocId);
+        // Quest indicator (only if unlocked)
+        let questBadge = null;
+        if (isUnlocked) {
+          if (n.id === 'tavern' && (gs.activeQuests.q_old_soldier === 'return' || (!gs.flags.includes('met_oldman')))) {
+            questBadge = !gs.flags.includes('met_oldman') ? '!' : '✓';
+          }
+          if (n.id === 'wizard_tower' && gs.activeQuests.q_wizard === 'return_wizard') {
+            questBadge = '✓';
+          }
+          if (n.id === 'wild_herb' && gs.activeQuests.q_wizard === 'collect_herb' && !gs.questItems.includes('silver_herb')) {
+            questBadge = '!';
+          }
+          if (n.id === 'crypt' && gs.activeQuests.q_old_soldier === 'find_amulet' && !gs.questItems.includes('soldier_amulet')) {
+            questBadge = '!';
+          }
+          if (n.id === 'mine' && gs.activeQuests.q_smith === 'find_hammer' && !gs.questItems.includes('iron_hammer')) {
+            questBadge = '!';
+          }
+          if (n.id === 'smith' && gs.activeQuests.q_smith === 'return') {
+            questBadge = '✓';
+          }
+          if (n.id === 'cliffs' && (gs.activeQuests.q_pirate === 'kill_pirate' || gs.activeQuests.q_fish === 'find_fish')) {
+            questBadge = '!';
+          }
+          if (n.id === 'lighthouse' && gs.activeQuests.q_lighthouse === 'investigate') {
+            questBadge = '!';
+          }
+          if (n.id === 'harbor_dock' && (gs.activeQuests.q_pirate === 'return' || gs.activeQuests.q_lighthouse === 'return')) {
+            questBadge = '✓';
+          }
+          if (n.id === 'harbor_fishmonger' && gs.activeQuests.q_fish === 'return') {
+            questBadge = '✓';
+          }
+          if (n.id === 'harbor_inn' && gs.activeQuests.q_letter === 'deliver') {
+            questBadge = '✓';
+          }
+          if (n.id === 'harbor_cult' && gs.activeQuests.q_cult === 'infiltrate') {
+            questBadge = '!';
+          }
+        }
+
+        return (
+          <div
+            key={n.id}
+            className={`marker ${n.kind} ${n.type||''} ${isLocked?'locked':''} ${isCurrent?'current':''}`}
+            style={{ left:`${n.pos.x}%`, top:`${n.pos.y}%` }}
+            onClick={()=>onClickNode(n)}
+          >
+            {isCurrent && <div className="you-arrow">▼</div>}
+            <div className="marker-icon">
+              {n.icon}
+              {isLocked && <span className="lock-overlay">🔒</span>}
+              {!isLocked && questBadge && <span className={`quest-badge ${questBadge==='✓'?'green':''}`}>{questBadge}</span>}
+            </div>
+            <div className="marker-label">{n.name}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DialogScreen({ dialogId, storyLog, paragraphsRevealed, setParagraphsRevealed, choices, gs, onChoose, onBack }) {
+  const d = DIALOGS[dialogId];
+  const bodyRef = React.useRef(null);
+
+  // Show all paragraphs immediately. Typewriter handles per-paragraph reveal.
+  // The last paragraph uses typewriter; previous ones are static.
+  const visibleCount = storyLog.length;
+
+  // Auto-scroll to bottom when new content
+  React.useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    }
+  }, [storyLog.length]);
+
+  if (!d) return null;
+
+  return (
+    <div className="dialog-screen">
+      <div className="dialog-header">
+        <button className="dialog-back-btn" onClick={onBack}>←</button>
+        <div className="dialog-icon">{d.icon}</div>
+        <div className="dialog-title-block">
+          <div className="dialog-title">{d.title}</div>
+          {d.subtitle && <div className="dialog-sub">{d.subtitle}</div>}
+        </div>
+      </div>
+
+      <div className="dialog-body" ref={bodyRef}>
+        {storyLog.slice(0, visibleCount).map((p, i) => {
+          const isLast = i === visibleCount - 1;
+          // Use typewriter only on the latest paragraph
+          if (p.type === 'divider') {
+            return <div key={i} className="story-divider">· · ·</div>;
+          }
+          if (p.type === 'result') {
+            return (
+              <div key={i} className={`story-result ${p.success?'success':'fail'}`}>
+                <div style={{whiteSpace:'pre-wrap'}}>
+                  {isLast ? <Typewriter text={p.text} speed={25} onDone={()=>{}} /> : p.text}
+                </div>
+                {p.outcome && (
+                  <div className="story-rewards">
+                    {p.outcome.gold ? <span className={`reward-tag ${Math.abs(p.outcome.gold)>=50?'big':''}`}>💰 {p.outcome.gold>0?'+':''}{p.outcome.gold}</span> : null}
+                    {p.outcome.hp && p.outcome.hp < 999 ? <span className="reward-tag">❤️ {p.outcome.hp>0?'+':''}{p.outcome.hp}</span> : null}
+                    {p.outcome.hp >= 999 ? <span className="reward-tag">❤️ 满血</span> : null}
+                    {p.outcome.exp ? <span className="reward-tag">✨ +{p.outcome.exp}</span> : null}
+                    {p.outcome.fame ? <span className={`reward-tag ${Math.abs(p.outcome.fame)>=15?'big':''}`}>🏅 {p.outcome.fame>0?'+':''}{p.outcome.fame}</span> : null}
+                    {p.outcome.herb ? <span className="reward-tag">🌿 {p.outcome.herb>0?'+':''}{p.outcome.herb}</span> : null}
+                    {p.outcome.items?.map((it,j)=><span key={j} className="reward-tag big">📦 {it}</span>)}
+                    {p.outcome.stats && Object.entries(p.outcome.stats).map(([k,v])=><span key={k} className="reward-tag big">{k} {v>0?'+':''}{v}</span>)}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return (
+            <div key={i} className={`story-para ${p.type}`}>
+              {isLast ? <Typewriter text={p.text} speed={28} /> : p.text}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="dialog-choices">
+        {choices.map((c, i) => {
+          const disabled = (c.cost?.gold > gs.gold) ||
+            (c.requires && Object.entries(c.requires).some(([k,v])=>(gs[k]||0)<v));
+          const rate = c.stat ? calcRate(gs.stats[c.stat], gs.stats.LCK) : null;
+          const isPrimary = choices.length === 1 || c._close;
+          return (
+            <button
+              key={i}
+              className={`choice-btn ${disabled?'disabled':''} ${isPrimary?'primary':''}`}
+              onClick={()=>!disabled && onChoose(c)}
+            >
+              <span className="choice-btn-text">{c.text}</span>
+              {rate !== null && <span className="choice-btn-meta">{rate.toFixed(0)}%</span>}
+              {!rate && c.cost?.gold && <span className="choice-btn-meta">-{c.cost.gold}g</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CombatScreen({ combat, gs, onRoll, onFlee, onExit, onSkill }) {
+  const { enemy, playerHp, log, turn, diceVal, rolling, done, won, playerAnim, enemyAnim, playerDmg, enemyDmg, buffs } = combat;
+  const logRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [log]);
+
+  const playerHpPct = Math.max(0, playerHp / gs.maxHp * 100);
+  const enemyHpPct  = Math.max(0, enemy.currentHp / enemy.hp * 100);
+  const winRate     = calcRate(gs.stats.STR, gs.stats.LCK);
+
+  const playerSkills = (gs.skills || []).map(sid => SKILLS[sid]).filter(Boolean);
+
+  return (
+    <div className="combat-screen">
+      <div className="combat-topbar">
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
+          <div className="enemy-tier">👹 等阶 {enemy.tier}</div>
+          <div style={{marginLeft:'auto',fontSize:'0.68rem',color:'var(--text3)'}}>回合 {turn}</div>
+        </div>
+        <div className="combat-fighters">
+          <div className="fighter-info">
+            <div className="fighter-name">{gs.name} · Lv{gs.level||1}</div>
+            <div className="fighter-atk">ATK {gs.stats.STR} · LCK {gs.stats.LCK}</div>
+            <div className="fighter-hp-bar">
+              <div className="fighter-hp-fill player" style={{width:playerHpPct+'%'}} />
+            </div>
+            <div className="fighter-hp-text">{playerHp} / {gs.maxHp}</div>
+            {buffs && buffs.length > 0 && (
+              <div className="fighter-buffs">
+                {buffs.map((b,i) => <span key={i} className="buff-chip">{SKILLS[b]?.icon}</span>)}
+              </div>
+            )}
+          </div>
+          <div className="win-chance">
+            {!done && <>
+              <div className="win-chance-label">命中率</div>
+              <div className={`win-chance-val ${winRate>=60?'':winRate>=35?'mid':'low'}`}>{winRate.toFixed(0)}%</div>
+            </>}
+            {done && <div style={{fontSize:'1.4rem'}}>{won?'🏆':'💀'}</div>}
+          </div>
+          <div className="fighter-info enemy">
+            <div className="fighter-name">{enemy.name}</div>
+            <div className="fighter-atk">ATK {enemy.atk}</div>
+            <div className="fighter-hp-bar">
+              <div className="fighter-hp-fill enemy" style={{width:enemyHpPct+'%'}} />
+            </div>
+            <div className="fighter-hp-text">{enemy.currentHp} / {enemy.hp}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="combat-scene">
+        <div className="combat-scene-inner">
+          <div className="pixel-char">
+            <div className={`pixel-char-sprite ${playerAnim||''}`} style={{display:'flex',justifyContent:'center'}}>
+              {gs.face ? <FaceAvatar face={gs.face} size={70} /> :
+                ((AVATARS||[]).find(a => a.id === gs.avatar) || (AVATARS||[])[0] || {emoji:'🧙'}).emoji}
+            </div>
+            <div className="pixel-char-shadow" />
+            {enemyDmg && <div className="dmg-float enemy-dmg">-{enemyDmg}</div>}
+          </div>
+          <div style={{position:'relative',flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            {diceVal && !rolling && !done && (
+              <div style={{
+                background:'rgba(0,0,0,0.65)',
+                color:'#f0d080',
+                borderRadius:6,
+                padding:'4px 14px',
+                fontSize:'1.2rem',
+                fontWeight:700,
+                fontFamily:'Georgia,serif',
+              }}>D20: {diceVal}</div>
+            )}
+          </div>
+          <div className="pixel-char">
+            <div className={`pixel-char-sprite ${enemyAnim||''}`}
+              style={{transform:'scaleX(-1)', filter: enemy.currentHp<=0 ? 'grayscale(1) opacity(0.3)' : 'drop-shadow(2px 6px 10px rgba(0,0,0,0.6))'}}>
+              {enemy.emoji}
+            </div>
+            <div className="pixel-char-shadow" />
+            {playerDmg && <div className="dmg-float player-dmg">-{playerDmg}</div>}
+          </div>
+        </div>
+      </div>
+
+      <div className="combat-log" ref={logRef}>
+        {log.map((line, i) => {
+          let cls = 'sys';
+          if (line.startsWith('✦')) cls = 'crit';
+          else if (line.startsWith('✓')) cls = 'hit';
+          else if (line.startsWith('✕')) cls = 'miss';
+          else if (line.startsWith('💢') || line.startsWith('💀')) cls = 'hurt';
+          else if (line.startsWith('🏆')) cls = 'hit';
+          return <div key={i} className={`log-line ${cls}`}>{line}</div>;
+        })}
+      </div>
+
+      <div className="combat-actions">
+        {!done ? (
+          <>
+            <div className="combat-dice-row">
+              <div className={`inline-dice ${rolling?'rolling':''}`}>
+                <div className="inline-dice-num">{diceVal || '?'}</div>
+              </div>
+              <div className="combat-action-btns">
+                <button className="combat-btn primary" onClick={onRoll} disabled={rolling}>
+                  <span className="combat-btn-icon">⚔️</span>
+                  攻击（掷骰子）
+                </button>
+                <button className="combat-btn danger" onClick={onFlee} disabled={rolling}>
+                  <span className="combat-btn-icon">🏳️</span>
+                  逃跑
+                  <span className="combat-btn-sub">HP -40%</span>
+                </button>
+              </div>
+            </div>
+            {playerSkills.length > 0 && (
+              <div className="combat-skills">
+                {playerSkills.map(s => {
+                  const cd = combat.skillCooldowns?.[s.id] || 0;
+                  const disabled = cd > 0 || rolling;
+                  return (
+                    <button key={s.id} className={`skill-btn ${disabled?'disabled':''}`}
+                      onClick={()=>!disabled && onSkill(s)}>
+                      <span className="skill-btn-icon">{s.icon}</span>
+                      <span className="skill-btn-name">{s.name}</span>
+                      {cd > 0 && <span className="skill-btn-cd">{cd}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : (
+          <button className="combat-btn primary" style={{width:'100%'}} onClick={onExit}>
+            {won ? '🏆 凯旋归来 →' : '💀 接受命运 →'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BottomNav({ gs, active, onTab }) {
+  const activeQuestCnt = Object.keys(gs.activeQuests || {}).length;
+  const itemsCnt = (gs.questItems || []).length + (gs.inventory || []).length;
+
+  const tabs = [
+    { id:'character', icon:'⚔️', label:'角色' },
+    { id:'inventory', icon:'🎒', label:'背包', badge: itemsCnt },
+    { id:'quests',    icon:'📜', label:'任务', badge: activeQuestCnt, badgeColor:'gold' },
+    { id:'log',       icon:'📔', label:'日志' },
+  ];
+
+  return (
+    <div className="bottom-nav">
+      {tabs.map(t => {
+        const isActive = active === t.id;
+        return (
+          <button key={t.id}
+            className={`nav-tab ${isActive?'active':''}`}
+            onClick={() => onTab(isActive ? null : t.id)}>
+            <span className="nav-tab-icon">{t.icon}</span>
+            <span className="nav-tab-label">{t.label}</span>
+            {t.badge > 0 && <span className="nav-tab-badge"
+              style={t.badgeColor==='gold'?{background:'var(--gold)',color:'#1a1610'}:{}}>{t.badge}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DrawerPanel({ which, gs, onClose }) {
+  const titles = {
+    character: '⚔ 角色',
+    inventory: '🎒 背包',
+    quests: '📜 任务',
+    log: '📔 日志',
+  };
+
+  return (
+    <div className="drawer-overlay" onClick={onClose}>
+      <div className="drawer-panel" onClick={e=>e.stopPropagation()}>
+        <div className="drawer-handle" />
+        <div className="drawer-header">
+          <span className="drawer-title">{titles[which]}</span>
+          <button className="drawer-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="drawer-body">
+          {which === 'character' && <CharacterPanel gs={gs} />}
+          {which === 'inventory' && <InventoryPanel gs={gs} />}
+          {which === 'quests' && <QuestsPanel gs={gs} />}
+          {which === 'log' && <LogPanel gs={gs} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CharacterPanel({ gs }) {
+  const STAT_META = [
+    { key:'STR', name:'力量', icon:'⚔️' },
+    { key:'AGI', name:'敏捷', icon:'💨' },
+    { key:'INT', name:'智力', icon:'✨' },
+    { key:'CHA', name:'魅力', icon:'💛' },
+    { key:'VIT', name:'体力', icon:'💚' },
+    { key:'LCK', name:'幸运', icon:'🔮' },
+  ];
+  const goal = GOALS.find(g => g.id === gs.goal);
+  const traits = (gs.traits || []).map(tid => TRAITS.find(t => t.id === tid)).filter(Boolean);
+  const hpPct = Math.max(0, gs.hp / gs.maxHp * 100);
+  const expPct = Math.max(0, gs.exp / gs.expMax * 100);
+  const skills = (gs.skills || []).map(sid => SKILLS[sid]).filter(Boolean);
+
+  return (
+    <>
+      <div className="char-overview">
+        <div className="char-overview-face">
+          {gs.face ? <FaceAvatar face={gs.face} size={64} /> : '🧙'}
+        </div>
+        <div className="char-overview-info">
+          <div className="char-overview-name">{gs.name}</div>
+          <div className="char-overview-meta">Lv.{gs.level || 1} · 第 {gs.day} 天 · {goal ? `${goal.icon} ${goal.name}` : ''}</div>
+          <div className="char-overview-bars">
+            <div className="char-bar"><div className="char-bar-fill hp" style={{width:hpPct+'%'}}/></div>
+            <div className="char-bar-text">❤️ {gs.hp}/{gs.maxHp}</div>
+            <div className="char-bar"><div className="char-bar-fill exp" style={{width:expPct+'%'}}/></div>
+            <div className="char-bar-text">✨ {gs.exp}/{gs.expMax}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="drawer-section">
+        <div className="drawer-section-title">─── 属性 ───</div>
+        <div className="char-stat-grid">
+          {STAT_META.map(s => (
+            <div key={s.key} className="char-stat-item">
+              <span className="char-stat-item-icon">{s.icon}</span>
+              <span className="char-stat-item-name">{s.name}</span>
+              <span className="char-stat-item-val">{gs.stats[s.key]}</span>
+            </div>
+          ))}
+        </div>
+        {gs.freeStatPoints > 0 && (
+          <div style={{textAlign:'center',color:'var(--gold)',fontSize:'0.75rem',marginTop:6}}>
+            ✨ 你还有 {gs.freeStatPoints} 点自由属性可分配（升级时使用）
+          </div>
+        )}
+      </div>
+
+      <div className="drawer-section">
+        <div className="drawer-section-title">─── 特性 ───</div>
+        <div className="char-traits-list">
+          {traits.length === 0 && <div className="drawer-empty">无</div>}
+          {traits.map(t => (
+            <div key={t.id} className="char-trait-row">
+              <div className="char-trait-row-name">{t.name}</div>
+              <div className="char-trait-row-desc">{t.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {skills.length > 0 && (
+        <div className="drawer-section">
+          <div className="drawer-section-title">─── 技能 ───</div>
+          <div className="char-traits-list">
+            {skills.map(s => (
+              <div key={s.id} className="char-trait-row">
+                <div className="char-trait-row-name">{s.icon} {s.name}</div>
+                <div className="char-trait-row-desc">{s.desc} · 冷却 {s.cooldown} 回合</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function InventoryPanel({ gs }) {
+  const questItems = gs.questItems || [];
+  const items = gs.inventory || [];
+  const SLOTS = 16;  // total cells to show
+
+  return (
+    <>
+      {questItems.length > 0 && (
+        <div className="drawer-section">
+          <div className="drawer-section-title">─── 关键物品 ───</div>
+          <div className="quest-items-strip">
+            {questItems.map((id, i) => {
+              const info = ITEM_INFO[id] || { icon:'📦', name:id };
+              return (
+                <div key={i} className="inv-cell quest" title={info.name}>
+                  <span style={{fontSize:'1.6rem'}}>{info.icon}</span>
+                  <div className="inv-cell-name">{info.name}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="drawer-section">
+        <div className="drawer-section-title">─── 物品 ({items.length}) ───</div>
+        {items.length === 0 ? (
+          <div className="drawer-empty">背包空空如也</div>
+        ) : (
+          <div className="inv-grid">
+            {items.map((it, i) => {
+              const info = ITEM_INFO[it] || { icon:'📦', name:it };
+              return (
+                <div key={i} className="inv-cell has-item" title={typeof it === 'string' ? it : info.name}>
+                  <span style={{fontSize:'1.4rem'}}>{info.icon}</span>
+                  <div className="inv-cell-name">{typeof it === 'string' ? it : info.name}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="drawer-section">
+        <div className="drawer-section-title">─── 资源 ───</div>
+        <div className="char-stat-grid">
+          <div className="char-stat-item">
+            <span className="char-stat-item-icon">💰</span>
+            <span className="char-stat-item-name">金币</span>
+            <span className="char-stat-item-val">{gs.gold}</span>
+          </div>
+          <div className="char-stat-item">
+            <span className="char-stat-item-icon">🌿</span>
+            <span className="char-stat-item-name">草药</span>
+            <span className="char-stat-item-val">{gs.herb||0}</span>
+          </div>
+          <div className="char-stat-item">
+            <span className="char-stat-item-icon">🏅</span>
+            <span className="char-stat-item-name">声望</span>
+            <span className="char-stat-item-val">{gs.fame}</span>
+          </div>
+          <div className="char-stat-item">
+            <span className="char-stat-item-icon">💀</span>
+            <span className="char-stat-item-name">击杀</span>
+            <span className="char-stat-item-val">{gs.kills||0}</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function QuestsPanel({ gs }) {
+  const active = Object.entries(gs.activeQuests || {});
+  const done = gs.doneQuests || [];
+
+  return (
+    <>
+      <div className="drawer-section">
+        <div className="drawer-section-title">─── 进行中 ({active.length}) ───</div>
+        {active.length === 0 ? (
+          <div className="drawer-empty">尚未接取任务</div>
+        ) : (
+          <div className="quest-list-drawer">
+            {active.map(([qid, currentStep]) => {
+              const q = QUESTS[qid];
+              if (!q) return null;
+              const curIdx = q.steps.findIndex(s => s.id === currentStep);
+              return (
+                <div key={qid} className="quest-row-drawer">
+                  <div className="quest-row-drawer-name">📍 {q.name}</div>
+                  <div className="quest-row-drawer-prog">
+                    {q.steps.map((s, i) => {
+                      if (s.id === 'done') return null;
+                      const isDone = i < curIdx;
+                      const isCurrent = i === curIdx;
+                      return (
+                        <div key={s.id} className={`quest-step ${isDone?'done':''} ${isCurrent?'current':''}`}>
+                          <span className="quest-step-marker">{isDone ? '✓' : isCurrent ? '▶' : '○'}</span>
+                          {s.desc}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {done.length > 0 && (
+        <div className="drawer-section">
+          <div className="drawer-section-title">─── 已完成 ({done.length}) ───</div>
+          <div className="quest-list-drawer">
+            {done.map(qid => {
+              const q = QUESTS[qid];
+              if (!q) return null;
+              return (
+                <div key={qid} className="quest-row-drawer done">
+                  <div className="quest-row-drawer-name">✓ {q.name}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function LogPanel({ gs }) {
+  // Simple summary log
+  const entries = [];
+  entries.push(`第 ${gs.day} 天，你的旅程仍在继续。`);
+  if (gs.kills > 0) entries.push(`你已击败 ${gs.kills} 个敌人。`);
+  if (gs.doneQuests?.length > 0) entries.push(`你完成了 ${gs.doneQuests.length} 项任务。`);
+  if (gs.fame >= 50) entries.push(`你的名声已传遍这片大陆。`);
+  if (gs.gold >= 200) entries.push(`你的钱袋日益沉甸。`);
+  entries.push(`（更多记忆将在未来版本中记录）`);
+
+  return (
+    <>
+      <div className="drawer-section">
+        <div className="drawer-section-title">─── 冒险记忆 ───</div>
+        {entries.map((e, i) => (
+          <div key={i} className="log-entry">
+            {e}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function ItemShowcase({ info, onClose }) {
+  return (
+    <div className="item-showcase" onClick={onClose}>
+      <div className="item-shine" />
+      <div className="item-showcase-label">─── 获得物品 ───</div>
+      <div className="item-showcase-icon">{info.icon}</div>
+      <div className="item-showcase-name">{info.name}</div>
+      <div className="item-showcase-desc">{info.desc}</div>
+      <div className="item-showcase-tap">轻点继续</div>
+    </div>
+  );
+}
+
+function DiceOverlay({ state, onConfirm }) {
+  const STAT_INFO = {
+    STR: {icon:'⚔️', name:'力量'},
+    AGI: {icon:'💨', name:'敏捷'},
+    INT: {icon:'✨', name:'智力'},
+    CHA: {icon:'💛', name:'魅力'},
+    VIT: {icon:'💚', name:'体力'},
+    LCK: {icon:'🔮', name:'幸运'},
+  };
+  const info = STAT_INFO[state.stat] || {icon:'🎲', name:state.stat};
+
+  let verdict = '';
+  let verdictClass = '';
+  if (!state.rolling && state.roll != null) {
+    if (state.isCrit) { verdict = '✦ 大成功！'; verdictClass = 'crit'; }
+    else if (state.isFumble) { verdict = '✕ 大失败...'; verdictClass = 'fumble'; }
+    else if (state.success) { verdict = '✓ 成功'; verdictClass = 'success'; }
+    else { verdict = '✕ 失败'; verdictClass = 'fail'; }
+  }
+
+  return (
+    <div className="dice-overlay">
+      <div className="dice-attr-label">{info.icon} {info.name} 判定</div>
+      <div className="dice-rate-info">成功率 {state.rate.toFixed(1)}%</div>
+      <div className={`d20-dice ${state.rolling?'rolling':''}`}>
+        <div className="d20-shape">
+          <div className="d20-num">{state.roll || '?'}</div>
+        </div>
+      </div>
+      <div className={`dice-verdict ${verdictClass}`}>{verdict}</div>
+      <button className="dice-cont-btn" onClick={onConfirm} disabled={state.rolling}>
+        {state.rolling ? '掷骰中...' : '继续'}
+      </button>
+    </div>
+  );
+}
+
+function QuestLog({ gs, onClose }) {
+  const active = Object.entries(gs.activeQuests);
+  const done = gs.doneQuests || [];
+  return (
+    <div className="quest-log" onClick={onClose}>
+      <div className="ql-box" onClick={e=>e.stopPropagation()}>
+        <div className="ql-title">📜 任务</div>
+        {active.length === 0 && done.length === 0 && (
+          <div className="ql-empty">尚无任务</div>
+        )}
+        {active.map(([qid, step]) => {
+          const q = QUESTS[qid];
+          if (!q) return null;
+          const stepDef = q.steps.find(s=>s.id===step);
+          return (
+            <div key={qid} className="ql-item">
+              <div className="ql-item-name">{q.name}</div>
+              <div className="ql-item-prog">📍 {stepDef?.desc || step}</div>
+            </div>
+          );
+        })}
+        {done.map(qid => {
+          const q = QUESTS[qid];
+          if (!q) return null;
+          return (
+            <div key={qid} className="ql-item done">
+              <div className="ql-item-name">{q.name}</div>
+              <div className="ql-item-prog">✓ 已完成</div>
+            </div>
+          );
+        })}
+        <button className="ql-close" onClick={onClose}>关闭</button>
+      </div>
+    </div>
+  );
+}
+
+function WorldTerrain() {
+  return (
+    <svg className="terrain-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <rect x="0" y="0" width="100" height="10" fill="#2a4a5a"/>
+      <path d="M 60 10 L 70 25 L 75 18 L 85 30 L 90 22 L 100 35 L 100 10 Z" fill="url(#mtnG)" opacity="0.9"/>
+      <ellipse cx="20" cy="35" rx="15" ry="10" fill="#2d4423" opacity="0.6"/>
+      <ellipse cx="50" cy="55" rx="12" ry="8" fill="#2d4423" opacity="0.5"/>
+      <ellipse cx="35" cy="75" rx="20" ry="12" fill="#2d4423" opacity="0.7"/>
+      <path d="M 32 60 Q 45 50, 60 42" stroke="#8a7050" strokeWidth="0.5" strokeDasharray="2 1.5" fill="none" opacity="0.5"/>
+      <path d="M 32 60 Q 28 75, 25 85" stroke="#8a7050" strokeWidth="0.5" strokeDasharray="2 1.5" fill="none" opacity="0.5"/>
+      <path d="M 60 42 L 78 25" stroke="#8a7050" strokeWidth="0.5" strokeDasharray="2 1.5" fill="none" opacity="0.4"/>
+      <defs>
+        <linearGradient id="mtnG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7a7060"/>
+          <stop offset="100%" stopColor="#3a3024"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+function TownTerrain() {
+  return (
+    <svg className="terrain-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <rect x="0" y="0" width="100" height="100" fill="#5a4a35"/>
+      <rect x="35" y="40" width="30" height="20" fill="#705840" rx="2"/>
+      <path d="M 50 100 L 50 60 L 65 50 L 100 50" stroke="#8a7050" strokeWidth="2" fill="none" opacity="0.5"/>
+      <path d="M 0 50 L 35 50" stroke="#8a7050" strokeWidth="2" fill="none" opacity="0.5"/>
+      <path d="M 50 0 L 50 40" stroke="#8a7050" strokeWidth="2" fill="none" opacity="0.5"/>
+      <circle cx="15" cy="20" r="4" fill="#2d4423" opacity="0.5"/>
+      <circle cx="85" cy="80" r="5" fill="#2d4423" opacity="0.5"/>
+    </svg>
+  );
+}
+
+// ════════════════════════════════
+// TITLE / CREATE / ENDING SCREENS
+// ════════════════════════════════
+function TitleScreen({ onStart }) {
+  return (
+    <div className="title-screen">
+      <div className="title-logo">命途冒险</div>
+      <div className="title-sub">CALATIA · 文字 RPG</div>
+      <button className="title-btn" onClick={onStart}>开始新游戏</button>
+    </div>
+  );
+}
+
+function CreateScreen({ onStart, onBack }) {
+  const [step, setStep] = React.useState(1);
+  const [name, setName] = React.useState('无名英雄');
+  const [face, setFace] = React.useState({
+    faceShape: 'round',
+    skinTone: 'fair',
+    hairStyle: 'short',
+    hairColor: 'brown',
+    accessory: 'none',
+    expression: 'calm',
+  });
+  const [stats, setStats] = React.useState({ STR:5, AGI:5, INT:5, CHA:5, VIT:5, LCK:5 });
+  const [points, setPoints] = React.useState(10);
+  const [selTraits, setSelTraits] = React.useState([]);
+  const [selGoal, setSelGoal] = React.useState(null);
+  const [bottomTab, setBottomTab] = React.useState('appearance'); // appearance | stats | traits
+
+  const STAT_META = [
+    { key:'STR', name:'力量', icon:'⚔️' },
+    { key:'AGI', name:'敏捷', icon:'💨' },
+    { key:'INT', name:'智力', icon:'✨' },
+    { key:'CHA', name:'魅力', icon:'💛' },
+    { key:'VIT', name:'体力', icon:'💚' },
+    { key:'LCK', name:'幸运', icon:'🔮' },
+  ];
+
+  const adj = (k, d) => {
+    if (d>0 && points<=0) return;
+    if (d<0 && stats[k]<=1) return;
+    setStats(s => ({...s, [k]: s[k]+d}));
+    setPoints(p => p-d);
+  };
+
+  const toggleTrait = (id) => {
+    if (selTraits.includes(id)) {
+      setSelTraits(selTraits.filter(t=>t!==id));
+    } else {
+      if (selTraits.length >= 2) return;
+      setSelTraits([...selTraits, id]);
+    }
+  };
+
+  // Cycle through option arrays
+  const cyclePart = (partKey, dir) => {
+    const opts = window.GAMEDATA.FACE_PARTS[partKey].options;
+    const cur = face[partKey];
+    const idx = opts.findIndex(o => o.id === cur);
+    const newIdx = (idx + dir + opts.length) % opts.length;
+    setFace(f => ({...f, [partKey]: opts[newIdx].id}));
+  };
+
+  // Random face
+  const randomize = () => {
+    const newFace = {};
+    Object.keys(window.GAMEDATA.FACE_PARTS).forEach(k => {
+      const opts = window.GAMEDATA.FACE_PARTS[k].options;
+      newFace[k] = opts[Math.floor(Math.random()*opts.length)].id;
+    });
+    setFace(newFace);
+  };
+
+  const step1Valid = name.trim() && selTraits.length === 2 && points === 0;
+  const step2Valid = !!selGoal;
+
+  const begin = () => {
+    if (!step1Valid || !step2Valid) return;
+    const ng = makeInitState();
+    ng.name = name.trim();
+    ng.face = {...face};
+    ng.stats = {...stats};
+    ng.traits = [...selTraits];
+    ng.goal = selGoal;
+    selTraits.forEach(tid => {
+      const t = TRAITS.find(x => x.id === tid);
+      if (t) t.apply(ng);
+    });
+    ng.maxHp = 25 + ng.stats.VIT * 3 + ng.hpBonus;
+    ng.hp = ng.maxHp;
+    onStart(ng);
+  };
+
+  // Get current part option name for display
+  const partLabel = (partKey) => {
+    const part = window.GAMEDATA.FACE_PARTS[partKey];
+    const opt = part.options.find(o => o.id === face[partKey]);
+    return opt ? opt.name : '';
+  };
+
+  return (
+    <div className="create-screen">
+      <div className="create-header">
+        <div className="create-title">
+          {step === 1 ? '⚔ 创建冒险者' : '✦ 你的命题'}
+        </div>
+        <div className="create-subtitle">
+          {step === 1 ? 'WHO ARE YOU' : 'YOUR DESTINY'}
+        </div>
+        <div className="create-step-bar">
+          <span className={`step-dot ${step>=1?'on':''} ${step===1?'current':''}`}>① 角色</span>
+          <span className="step-dash"/>
+          <span className={`step-dot ${step>=2?'on':''} ${step===2?'current':''}`}>② 命题</span>
+        </div>
+      </div>
+
+      {step === 1 && (
+        <>
+          {/* Big face preview */}
+          <div className="face-preview-area">
+            <div className="face-preview-frame">
+              <FaceAvatar face={face} size={150} />
+              <button className="dice-shuffle" onClick={randomize} title="随机">🎲</button>
+            </div>
+            <input className="face-name-input" value={name} maxLength={10}
+              onChange={e=>setName(e.target.value)} placeholder="你的名字..." />
+          </div>
+
+          {/* Bottom tabbed area */}
+          <div className="create-tabs">
+            <button className={`create-tab ${bottomTab==='appearance'?'active':''}`}
+              onClick={()=>setBottomTab('appearance')}>外貌</button>
+            <button className={`create-tab ${bottomTab==='stats'?'active':''}`}
+              onClick={()=>setBottomTab('stats')}>属性 {points>0 && <span className="tab-dot">●</span>}</button>
+            <button className={`create-tab ${bottomTab==='traits'?'active':''}`}
+              onClick={()=>setBottomTab('traits')}>特性 {selTraits.length<2 && <span className="tab-dot">●</span>}</button>
+          </div>
+
+          <div className="create-tab-body">
+            {bottomTab === 'appearance' && (
+              <div className="part-cyclers">
+                {Object.entries(window.GAMEDATA.FACE_PARTS).map(([key, part]) => {
+                  const opt = part.options.find(o => o.id === face[key]);
+                  return (
+                    <div key={key} className="part-cycler">
+                      <button className="cycler-arrow" onClick={()=>cyclePart(key, -1)}>◀</button>
+                      <div className="cycler-content">
+                        <div className="cycler-label">{part.label}</div>
+                        <div className="cycler-value">
+                          {opt?.color && <span className="color-swatch" style={{background:opt.color}}/>}
+                          {opt?.name}
+                        </div>
+                      </div>
+                      <button className="cycler-arrow" onClick={()=>cyclePart(key, 1)}>▶</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {bottomTab === 'stats' && (
+              <div className="tab-content-stats">
+                <div className="pts-bar">剩余点数 <span className="pts-num">{points}</span> / 10</div>
+                <div className="stat-grid">
+                  {STAT_META.map(s => (
+                    <div key={s.key} className="stat-row">
+                      <span className="stat-row-icon">{s.icon}</span>
+                      <span className="stat-row-name">{s.name}</span>
+                      <button className="stat-btn" onClick={()=>adj(s.key,-1)} disabled={stats[s.key]<=1}>−</button>
+                      <span className="stat-row-val">{stats[s.key]}</span>
+                      <button className="stat-btn" onClick={()=>adj(s.key,1)} disabled={points<=0}>+</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {bottomTab === 'traits' && (
+              <div className="tab-content-traits">
+                <div className="trait-hint">选择 2 个特性 · 已选 {selTraits.length}/2</div>
+                <div className="trait-grid">
+                  {TRAITS.map(t => {
+                    const sel = selTraits.includes(t.id);
+                    const dis = !sel && selTraits.length >= 2;
+                    return (
+                      <div key={t.id}
+                        className={`trait-card ${sel?'selected':''} ${dis?'disabled':''}`}
+                        onClick={()=>toggleTrait(t.id)}>
+                        <div className="trait-name">{sel?'✓ ':''}{t.name}</div>
+                        <div className="trait-desc">{t.desc}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {step === 2 && (
+        <div className="create-body">
+          <div style={{padding:'8px 4px 16px',textAlign:'center',color:'var(--text2)',fontSize:'0.85rem',lineHeight:1.7}}>
+            这是你为自己设下的命题。<br/>
+            它将决定这一段冒险的方向，与最终的归宿。
+          </div>
+          <div className="goal-list">
+            {GOALS.map(g => (
+              <div key={g.id}
+                className={`goal-card big ${selGoal===g.id?'selected':''}`}
+                onClick={()=>setSelGoal(g.id)}>
+                <div className="goal-card-top">
+                  <div className="goal-icon big">{g.icon}</div>
+                  <div className="goal-card-title">
+                    <div className="goal-name">{g.name}</div>
+                    <div className="goal-desc">{g.desc}</div>
+                  </div>
+                </div>
+                {g.id === 'glory' && (
+                  <div className="goal-quote">「让吟游诗人为你写下传记。」</div>
+                )}
+                {g.id === 'wealth' && (
+                  <div className="goal-quote">「金币不会撒谎，它只会让人微笑。」</div>
+                )}
+                {g.id === 'dragon' && (
+                  <div className="goal-quote">「真正的勇者，从不向命运低头。」</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="create-footer">
+        {step === 1 && (
+          <button className="start-btn" disabled={!step1Valid} onClick={()=>setStep(2)}>
+            下 一 步 →
+          </button>
+        )}
+        {step === 2 && (
+          <>
+            <button className="back-step-btn" onClick={()=>setStep(1)}>← 返回</button>
+            <button className="start-btn primary-btn" disabled={!step2Valid} onClick={begin}>
+              踏 上 旅 途 →
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IntroScreen({ gs, onContinue }) {
+  const goal = GOALS.find(g => g.id === gs.goal);
+  const primaryTrait = gs.traits.length > 0
+    ? TRAITS.find(t => t.id === gs.traits[0])
+    : null;
+  const secondaryTrait = gs.traits.length > 1
+    ? TRAITS.find(t => t.id === gs.traits[1])
+    : null;
+
+  return (
+    <div className="intro-screen">
+      <div className="intro-header">
+        <div className="intro-avatar" style={{padding:0,border:'2px solid rgba(30,20,10,0.4)'}}>
+          {gs.face ? <FaceAvatar face={gs.face} size={52} /> : '🧙'}
+        </div>
+        <div>
+          <div className="intro-name">{gs.name}</div>
+          <div className="intro-trait">
+            {primaryTrait?.name}{secondaryTrait?` · ${secondaryTrait.name}`:''}
+          </div>
+        </div>
+      </div>
+      <div className="intro-body">
+        <div className="intro-chapter">序 章</div>
+        <div className="intro-title">命途的开始</div>
+
+        {primaryTrait?.intro && (
+          <div className="intro-text">{primaryTrait.intro}</div>
+        )}
+        {secondaryTrait?.intro && (
+          <div className="intro-text">{secondaryTrait.intro}</div>
+        )}
+
+        <div className="intro-text">
+          某天清晨，你收拾好简单的行装，告别熟悉的一切，向着未知的远方迈出了第一步。前方等待你的，会是命运的眷顾，还是无情的玩笑？
+        </div>
+
+        {goal && (
+          <div className="intro-goal-box">
+            <div className="intro-goal-label">─── 你的命题 ───</div>
+            <div className="intro-goal-name">{goal.icon} {goal.name}</div>
+            <div className="intro-goal-desc">{goal.desc}</div>
+          </div>
+        )}
+      </div>
+      <div className="intro-btn-row">
+        <button className="intro-btn" onClick={onContinue}>开 始 旅 程 →</button>
+      </div>
+    </div>
+  );
+}
+
+function EndingScreen({ ep, gs, onRestart, onTitle }) {
+  return (
+    <div className="ending-screen" style={{background: ep.bg ? `radial-gradient(ellipse at top, ${ep.bg}, var(--bg-dark))` : undefined}}>
+      <div className="ending-icon">{ep.icon}</div>
+      <div className="ending-subtitle">{ep.subtitle || 'EPILOGUE'}</div>
+      <div className="ending-title">{ep.title}</div>
+      <div className="ending-story">{ep.story}</div>
+      <div className="ending-stats">
+        <div className="ending-stat">
+          <div className="ending-stat-val">{gs.gold}</div>
+          <div className="ending-stat-key">金币</div>
+        </div>
+        <div className="ending-stat">
+          <div className="ending-stat-val">{gs.fame}</div>
+          <div className="ending-stat-key">声望</div>
+        </div>
+        <div className="ending-stat">
+          <div className="ending-stat-val">{gs.kills||0}</div>
+          <div className="ending-stat-key">击杀</div>
+        </div>
+        <div className="ending-stat">
+          <div className="ending-stat-val">{gs.doneQuests?.length||0}</div>
+          <div className="ending-stat-key">任务</div>
+        </div>
+        <div className="ending-stat">
+          <div className="ending-stat-val">{gs.exp}</div>
+          <div className="ending-stat-key">经验</div>
+        </div>
+        <div className="ending-stat">
+          <div className="ending-stat-val">{gs.questItems?.length||0}</div>
+          <div className="ending-stat-key">珍宝</div>
+        </div>
+      </div>
+      <div>
+        <button className="ending-btn primary" onClick={onRestart}>再次冒险</button>
+        <button className="ending-btn" onClick={onTitle}>返回主页</button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
