@@ -385,7 +385,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: calc(env(safe-area-inset-top) + 110px) 14px 12px;
   border-bottom: 1px solid var(--paper-border);
   background: rgba(184,134,11,0.06);
   flex-shrink: 0;
@@ -593,7 +593,7 @@ html, body, #root {
 
 /* Choices area at bottom */
 .dialog-choices {
-  padding: 4px 14px max(10px, env(safe-area-inset-bottom));
+  padding: 4px 14px calc(env(safe-area-inset-bottom) + 96px);
   flex-shrink: 0;
   /* Hairline separator between story and actions */
   border-top: 1px solid rgba(30,20,10,0.1);
@@ -2084,7 +2084,7 @@ img.nav-tab-icon { width: 80px; height: 80px; object-fit: contain; display: bloc
 .combat-topbar {
   background: rgba(0,0,0,0.5);
   border-bottom: 1px solid rgba(212,160,32,0.2);
-  padding: 8px 12px 6px;
+  padding: calc(env(safe-area-inset-top) + 8px) 12px 6px;
   flex-shrink: 0;
 }
 .combat-fighters {
