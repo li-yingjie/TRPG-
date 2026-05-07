@@ -13,7 +13,7 @@ export const DIALOGS = {
         paragraphs: [
           { type:'text', text:'你推开石柱旅馆厚重的橡木门。扑面而来的是麦酒香气、烟草气息与喧嚣谈笑声。壁炉里的火焰将整间屋子映得橙红温暖，几名旅人围坐在粗糙的木桌旁低声交谈。' },
           { type:'text', text:'吧台后面，一个身材圆润、面色红润的中年男人正在擦拭酒杯，那是旅馆主人汤姆林·斯通希尔。在靠墙的僻静角落，一名风尘仆仆的战士独自坐着，身上的旅行装备尚未完全拆卸，眼神里带着一丝难以掩藏的疲惫与忧虑。' },
-          { type:'image', src:'/scenes/neverwinter_harbor.jpg', alt:'内华冬城', caption:'内华冬城 · 悬崖港' },
+          { type:'image', src:'/scenes/neverwinter_harbor.png', alt:'内华冬城', caption:'内华冬城 · 悬崖港' },
         ],
         choices: [
           { text:'走向旅馆主人汤姆林', goto:'tavern_toblen', effect:{ flags:['met_toblen'] } },
@@ -751,7 +751,7 @@ export const DIALOGS = {
         when: () => true,
         paragraphs: [
           { type:'text', text:'内华冬城的码头是整个剑湾海岸最繁忙的港口之一。各色船只挤在泊位上，桅杆如同一片移动的丛林。海鸥在空中盘旋，脚夫们喊着号子搬运货物，商人们在货仓旁大声交涉。' },
-          { type:'image', src:'/scenes/neverwinter_harbor.jpg', alt:'内华冬城码头', caption:'内华冬城 · 悬崖港' },
+          { type:'image', src:'/scenes/neverwinter_harbor.png', alt:'内华冬城码头', caption:'内华冬城 · 悬崖港' },
           { type:'text', text:'这座城市因为"永不失落之城"的称号而著称，如今在内弗雷姆拜尔领主的统治下，依然是北部最重要的政治与贸易中心。然而在这繁华背后，各种势力也在暗中角力。' },
           { type:'text', text:'码头边，一个老水手正在修补渔网，偶尔朝你打量几眼；港务官员拿着厚厚的账本穿梭于各船之间；远处，几个身着便服的壮汉正低声交谈，眼神警惕。' },
         ],
